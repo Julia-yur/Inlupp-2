@@ -3,7 +3,7 @@
 #include <string.h>
 #include "common.h"
 #include "hash_table.h"
-#include "list_iterator.h"
+#include "linked_list_iterator.h"
 #include "hash_table_iterator.h"
 #include <ctype.h>
 
