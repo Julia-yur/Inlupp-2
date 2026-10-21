@@ -7,7 +7,7 @@ struct merch
     char *name;
     char *desc;
     int price;
-    ioopm_list_t *loc;
+    ioopm_list_t *locs;
 };
 
 struct shelf
@@ -27,3 +27,35 @@ struct cart
     int id;
     ioopm_hash_table_t *items;
 };
+
+warehouse_t *warehouse_create(void)
+{
+    return NULL;
+}
+
+void warehouse_destroy(warehouse_t *wh)
+{
+    (void)wh;
+}
+
+bool warehouse_has_merch(warehouse_t *wh, char *key)
+{
+    (void)wh;
+    (void)key;
+    return false;
+}
+
+bool warehouse_has_shelf(warehouse_t *wh, char *shelf)
+{
+    (void)wh;
+    (void)shelf;
+    return false;
+}
+
+void warehouse_insert(warehouse_t *wh, char *name, char *desc, int price)
+{
+    (void)wh;
+    (void)name;
+    (void)desc;
+    (void)price;
+}

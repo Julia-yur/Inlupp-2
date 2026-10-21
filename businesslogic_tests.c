@@ -17,7 +17,12 @@ int clean_suite(void)
 
 // TESTS ///
 
-
+void create_destroy_wh(void)
+{
+    warehouse_t *wh = warehouse_create();
+    CU_ASSERT_PTR_NOT_NULL(wh);
+    warehouse_destroy(wh);
+}
 
 int main()
 {
@@ -43,8 +48,7 @@ int main()
     // the test in question. If you want to add another test, just
     // copy a line below and change the information
     if (
-        (CU_add_test(my_test_suite, "Test name", ) == NULL) ||
-        (CU_add_test(my_test_suite, "Test name", ) == NULL) ||
+        (CU_add_test(my_test_suite, "Create destroy wh", create_destroy_wh) == NULL) ||
         0)
     {
         // If adding any of the tests fails, we tear down CUnit and exit
