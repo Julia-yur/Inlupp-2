@@ -13,7 +13,7 @@ typedef struct cart cart_t;
 warehouse_t *warehouse_create(void);
 
 //Destroy a warehouse
-void warehouse_destroy(warehouse_t **wh);
+void warehouse_destroy(warehouse_t *wh);
 
 // If warehouse is empty
 bool warehouse_is_empty(warehouse_t *wh);

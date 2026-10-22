@@ -20,7 +20,10 @@ int clean_suite(void)
 void test_create_destroy_wh(void)
 {
     warehouse_t *wh = warehouse_create();
+    
     CU_ASSERT_PTR_NOT_NULL(wh);
+    CU_ASSERT_TRUE(warehouse_is_empty(wh));
+   
     warehouse_destroy(wh);
 }
 
@@ -28,11 +31,11 @@ void test_insert_merch_one()
 {
     warehouse_t *wh = warehouse_create();
 
-    bool dp = warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    warehouse_insert(wh, "DP", "Dr Pepper", 10);
     
-    CU_ASSERT_TRUE(dp);
+    CU_ASSERT_FALSE(warehouse_is_empty);
 
-    
+    warehouse_destroy(wh);
 }
 
 int main()
@@ -59,7 +62,8 @@ int main()
     // the test in question. If you want to add another test, just
     // copy a line below and change the information
     if (
-        (CU_add_test(my_test_suite, "Create destroy wh", create_destroy_wh) == NULL) ||
+        (CU_add_test(my_test_suite, "Create destroy wh", test_create_destroy_wh) == NULL) ||
+        (CU_add_test(my_test_suite, "Insert one merch", test_insert_merch_one) == NULL) ||
         0)
     {
         // If adding any of the tests fails, we tear down CUnit and exit
