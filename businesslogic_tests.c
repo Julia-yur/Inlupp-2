@@ -17,11 +17,22 @@ int clean_suite(void)
 
 // TESTS ///
 
-void create_destroy_wh(void)
+void test_create_destroy_wh(void)
 {
     warehouse_t *wh = warehouse_create();
     CU_ASSERT_PTR_NOT_NULL(wh);
     warehouse_destroy(wh);
+}
+
+void test_insert_merch_one()
+{
+    warehouse_t *wh = warehouse_create();
+
+    bool dp = warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    
+    CU_ASSERT_TRUE(dp);
+
+    
 }
 
 int main()

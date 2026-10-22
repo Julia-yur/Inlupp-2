@@ -52,10 +52,11 @@ bool warehouse_has_shelf(warehouse_t *wh, char *shelf)
     return false;
 }
 
-void warehouse_insert(warehouse_t *wh, char *name, char *desc, int price)
+bool warehouse_add_merch(warehouse_t *wh, char *name, char *desc, int price)
 {
     (void)wh;
     (void)name;
     (void)desc;
     (void)price;
+    return false;
 }
