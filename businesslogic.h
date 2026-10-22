@@ -13,7 +13,7 @@ typedef struct cart cart_t;
 warehouse_t *warehouse_create(void);
 
 //Destroy a warehouse
-void warehouse_destroy(warehouse_t **wh);
+void warehouse_destroy(warehouse_t *wh);
 
 // If warehouse is empty
 bool warehouse_is_empty(warehouse_t *wh);
@@ -25,7 +25,6 @@ size_t warehouse_merch_count(warehouse_t *wh);
 
 //Lookup if an item is present in the warehouse with its name.
 bool warehouse_has_merch(warehouse_t *wh, char *key);
-
 
 //Insert merch into warehouse.
 void warehouse_insert(warehouse_t *wh, char *name, char *desc, int price);

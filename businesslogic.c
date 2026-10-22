@@ -31,6 +31,28 @@ struct cart
     ioopm_hash_table_t *items;
 };
 
+//HASHING FUNKTIONER
+
+/// HASH-FUNKTION TAGEN FRÅN STACK OVERFLOW https://stackoverflow.com/a/7666577, modifierad
+size_t hash_str(elem_t str)
+{
+    size_t hash = 5381;
+    int c;
+
+    while ((c = *str.s++))
+    {
+        hash = ((hash << 5) + hash) + c;
+    }
+
+    return hash;
+}
+
+//String compare för elem_t från inluppsbeskrivningen
+static bool string_key_eq(elem_t k1, elem_t k2)
+{
+  return strcmp(k1.s, k2.s) == 0; // if elem_t has field charstring
+}
+
 // Warehouse funktioner
 
 warehouse_t *warehouse_create(void)
@@ -43,74 +65,66 @@ warehouse_t *warehouse_create(void)
 
     }
 
-    wh->ht_n_S = ioopm_hash_table_create(string_hash, string_eq);
-    wh->ht_sl_n = ioopm_hash_table_create(string_hash, string_eq);
-    
-    if (wh->ht_n_S == NULL || wh->ht_sl_n == NULL)
-    {
-        ioopm_hash_table_destroy(&wh->ht_n_S);
-        ioopm_hash_table_destroy(&wh->ht_sl_n);
-        free(wh);
-        return NULL;
-    }
+    wh->ht_n_S = ioopm_hash_table_create(hash_str, string_key_eq);
+    wh->ht_sl_n = ioopm_hash_table_create(hash_str, string_key_eq);
 
     return wh;
 
 }
 
-void warehouse_destroy(warehouse_t **wh)
-{
-    if (wh == NULL || *wh == NULL)
-    {
-        return;
-    }
+void warehouse_destroy(warehouse_t *wh)
+{ 
 
-    warehouse_t *warehouse = *wh;
-
-    // Frigör alla merch-objekt som lagras i ht_n_S.
+ /*   // Frigör alla merch-objekt som lagras i ht_n_S.
     ioopm_hash_table_iterator_t *iter =
-        ioopm_hash_table_iterator_create(&warehouse->ht_n_S);
+        ioopm_hash_table_iterator_create(warehouse->ht_n_S);
 
-    while (!ioopm_hash_table_iterator_at_end(&iter))
+    while (!ioopm_hash_table_iterator_at_end(iter))
     {
         elem_t value =
-            *ioopm_hash_table_iterator_current_value(&iter);
+            *ioopm_hash_table_iterator_current_value(iter);
 
         merch_t *merch = value.p;
         merch_destroy(merch);
 
-        ioopm_hash_table_iterator_advance(&iter);
+        ioopm_hash_table_iterator_advance(iter);
     }
 
-    ioopm_hash_table_iterator_destroy(&iter);
+    ioopm_hash_table_iterator_destroy(iter); */
 
     // Förstör hash tables interna struktur.
-    ioopm_hash_table_destroy(&warehouse->ht_n_S);
-    ioopm_hash_table_destroy(&warehouse->ht_sl_n);
+    ioopm_hash_table_destroy(wh->ht_n_S);
+    ioopm_hash_table_destroy(wh->ht_sl_n);
 
-    free(warehouse);
-    *wh = NULL;
+    free(wh);
 }
 
 // If warehouse is empty
-bool warehouse_is_empty(warehouse_t *wh);
+bool warehouse_is_empty(warehouse_t *wh)
 {
     if (wh == NULL)
     {
         return true;
     }
 
-    return ioopm
+    return ioopm_hash_table_is_empty(wh->ht_n_S);
+
 }
 
-
-
 // Counter of merch
-size_t warehouse_merch_count(warehouse_t *wh);
+/* size_t warehouse_merch_count(warehouse_t *wh);
+{
+    if (wh == NULL)
+    {
+        return 0;
+    }
+    
+    return ioopm_hash_table_size(&wh->ht_n_S);
+} */
 
 // Merchandise funktioner
 
-bool warehouse_has_merch(warehouse_t *wh, char *key)
+/* bool warehouse_has_merch(warehouse_t *wh, char *key)
 {
     if (wh == NULL || key == NULL)
     {
@@ -118,29 +132,14 @@ bool warehouse_has_merch(warehouse_t *wh, char *key)
     }
 
     return ioopm_hash_table_has_key(wh->ht_n_S, string_elem(key));
-}
-
-bool warehouse_has_shelf(warehouse_t *wh, char *shelf)
-{
-    if (wh == NULL || key == NULL)
-    {
-        return false;
-    }
-    return ioopm_hash_table_has_key(wh->ht_sl_n, string_elem(key));
-
-}
+} */
 
 void warehouse_insert(warehouse_t *wh, char *name, char *desc, int price)
 {
-    if (wh == NULL || name == NULL || desc == NULL)
+    /* if (warehouse_has_merch(wh, name))
     {
         return;
-    }
-
-    if (warehouse_has_merch(wh, name))
-    {
-        return;
-    }
+    } */
 
     merch_t *merch = malloc(sizeof(merch_t));
     if (merch == NULL)
@@ -153,23 +152,58 @@ void warehouse_insert(warehouse_t *wh, char *name, char *desc, int price)
     merch->price = price;
     merch->locs = ioopm_list_create();
 
-    if (merch->name == NULL || merch->desc == NULL || merch->locs == NULL)
+    ioopm_hash_table_insert(wh->ht_n_S, string_elem(merch->name), ptr_elem(merch));
+}
+
+/* bool warehouse_remove_merch(warehouse_t *wh, char *name);
+{
+    if (wh == NULL || name == NULL)
     {
-        free(merch->name);
-        free(merch->desc);
-
-        if (merch->locs != NULL)
-        {
-            ioopm_list_destroy(&merch->locs);
-        }
-
-        free(merch);
-        return;
+        return false;
     }
 
-    ioopm_hash_table_insert(
-        &wh->ht_n_S,
-        string_elem(merch->name),
-        ptr_elem(merch)
-    );
+    elem_t removed;
+    if (!ioopm_hash_table_remove(wh->ht_n_S, string_elem(name) &removed))
+    {
+        return false;
+    }
+
+    merch_t *merch = removed.p;
+
+    merch_destroy(merch);
+    return true;
 }
+
+bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_desc, int new_price);
+
+{
+    if (wh == NULL || name == NULL || new_desc == NULL || new_price == NULL)
+    {
+        return false;
+    }
+
+    elem_t result;
+
+    if (!ioopm_hash_table_lookup(wh->ht_n_S, string_elem(name), &result))
+    {
+        return false;
+    }
+
+    merch_t 
+
+}
+
+
+// Shelves and stock
+
+bool warehouse_has_shelf(warehouse_t *wh, char *shelf)
+{
+    if (wh == NULL || key == NULL)
+    {
+        return false;
+    }
+    return ioopm_hash_table_has_key(wh->ht_sl_n, string_elem(key));
+
+}
+
+// Carts */
