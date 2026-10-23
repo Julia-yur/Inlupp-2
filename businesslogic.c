@@ -19,7 +19,7 @@ struct shelf
     int stock;
 };
 
-struct warehouse 
+struct warehouse
 {
     ioopm_hash_table_t *ht_n_S;
     ioopm_hash_table_t *ht_sl_n;
@@ -31,7 +31,7 @@ struct cart
     ioopm_hash_table_t *items;
 };
 
-//HASHING FUNKTIONER
+// HASHING FUNKTIONER
 
 /// HASH-FUNKTION TAGEN FRÅN STACK OVERFLOW https://stackoverflow.com/a/7666577, modifierad
 size_t hash_str(elem_t str)
@@ -47,17 +47,17 @@ size_t hash_str(elem_t str)
     return hash;
 }
 
-//String compare för elem_t från inluppsbeskrivningen
+// String compare för elem_t från inluppsbeskrivningen
 static bool string_key_eq(elem_t k1, elem_t k2)
 {
-  return strcmp(k1.s, k2.s) == 0; // if elem_t has field char *string
+    return strcmp(k1.s, k2.s) == 0; // if elem_t has field char *string
 }
 
-// Warehouse funktioner
+// Warehouse och merch funktioner
 
 warehouse_t *warehouse_create(void)
 {
-    warehouse_t *wh = calloc(1, sizeof (struct warehouse));
+    warehouse_t *wh = calloc(1, sizeof(struct warehouse));
 
     wh->ht_n_S = ioopm_hash_table_create(hash_str, string_key_eq);
     wh->ht_sl_n = ioopm_hash_table_create(hash_str, string_key_eq);
@@ -65,25 +65,30 @@ warehouse_t *warehouse_create(void)
     return wh;
 }
 
+void merch_destroy(merch_t *merch)
+{
+    free(merch->name);
+    free(merch->desc);
+    ioopm_list_destroy(merch->locs);
+    free(merch);
+}
+
 void warehouse_destroy(warehouse_t *wh)
 {
-/*     // Frigör alla merch-objekt som lagras i ht_n_S.
-    ioopm_hash_table_iterator_t *iter =
-        ioopm_hash_table_iterator_create(&wh->ht_n_S);
+    // Frigör alla merch-objekt som lagras i ht_n_S.
+    ioopm_hash_table_iterator_t *iter = ioopm_hash_table_iterator_create(wh->ht_n_S);
 
-    while (!ioopm_hash_table_iterator_at_end(&iter))
+    while (!ioopm_hash_table_iterator_at_end(iter))
     {
-        elem_t value =
-            ioopm_hash_table_iterator_current_value(&iter);
+        elem_t value = ioopm_hash_table_iterator_current_value(iter);
+        merch_t *merch = value.p;
 
-        merch_t *merch = value;
         merch_destroy(merch);
-
-        ioopm_hash_table_iterator_advance(&iter);
+        ioopm_hash_table_iterator_advance(iter);
     }
 
-    ioopm_hash_table_iterator_destroy(&iter);
- */
+    ioopm_hash_table_iterator_destroy(iter);
+    
     // Förstör hash tables interna struktur.
     ioopm_hash_table_destroy(wh->ht_n_S);
     ioopm_hash_table_destroy(wh->ht_sl_n);
@@ -101,8 +106,6 @@ bool warehouse_is_empty(warehouse_t *wh)
 
     return (ioopm_hash_table_is_empty(wh->ht_n_S));
 }
-
-
 
 // Counter of merch
 /* size_t warehouse_merch_count(warehouse_t *wh); */
@@ -129,7 +132,7 @@ bool warehouse_is_empty(warehouse_t *wh)
 
 } */
 
-void warehouse_insert(warehouse_t *wh, char *name, char *desc, int price)
+void warehouse_add_merch(warehouse_t *wh, char *name, char *desc, int price)
 {
 
     /* if (warehouse_has_merch(wh, name))
@@ -142,10 +145,10 @@ void warehouse_insert(warehouse_t *wh, char *name, char *desc, int price)
     merch->name = strdup(name);
     merch->desc = strdup(desc);
     merch->price = price;
+    merch->locs = ioopm_list_create();
 
     ioopm_hash_table_insert(
         wh->ht_n_S,
         string_elem(merch->name),
-        ptr_elem(merch)
-    );
+        ptr_elem(merch));
 }

@@ -31,12 +31,63 @@ void test_insert_merch_one()
 {
     warehouse_t *wh = warehouse_create();
 
-    warehouse_insert(wh, "DP", "Dr Pepper", 10);
-    
-    CU_ASSERT_FALSE(warehouse_is_empty);
+    CU_ASSERT_TRUE(warehouse_add_merch(wh, "DP", "Dr Pepper", 10));
+    CU_ASSERT_FALSE(warehouse_is_empty(wh));
+    CU_ASSERT_EQUAL(warehouse_merch_count, 1);
+    CU_ASSERT_TRUE(warehouse_has_merch(wh, "DP"));
 
     warehouse_destroy(wh);
 }
+
+void test_insert_merch_two()
+{
+    warehouse_t *wh = warehouse_create();
+
+    CU_ASSERT_TRUE(warehouse_add_merch(wh, "DP", "Dr Pepper", 10));
+    CU_ASSERT_FALSE(warehouse_add_merch(wh, "DP", "Dr Pepper", 10));
+    CU_ASSERT_FALSE(warehouse_is_empty(wh));
+    CU_ASSERT_EQUAL(warehouse_merch_count, 1);
+    CU_ASSERT_TRUE(warehouse_has_merch(wh, "DP"));
+
+    warehouse_destroy(wh);
+}
+
+void test_insert_merch_remove()
+{
+    warehouse_t *wh = warehouse_create();
+
+    CU_ASSERT_TRUE(warehouse_add_merch(wh, "DP", "Dr Pepper", 10));
+    CU_ASSERT_TRUE(warehouse_remove_merch(wh, "DP"));
+
+    CU_ASSERT_TRUE(warehouse_is_empty(wh));
+    CU_ASSERT_EQUAL(warehouse_merch_count, 0);
+
+    warehouse_destroy(wh);
+}
+
+void test_merch_lookup()
+{
+    warehouse_t *wh = warehouse_create();
+
+    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    CU_ASSERT_FALSE(warehouse_is_empty(wh));
+    CU_ASSERT_EQUAL(warehouse_merch_count, 1);
+    
+    char *name;
+    char *desc;
+    int *price;
+
+    CU_ASSERT_TRUE(warehouse_lookup_name(wh, "DP", &name));
+    CU_ASSERT_TRUE(warehouse_lookup_desc(wh, "DP", &desc));
+    CU_ASSERT_TRUE(warehouse_lookup_price(wh, "DP", &price));
+
+    CU_ASSERT_STRING_EQUAL(name, "DP");
+    CU_ASSERT_STRING_EQUAL(desc, "Dr Pepper");
+    CU_ASSERT_EQUAL(price, 10);
+
+    warehouse_destroy(wh);
+}
+
 
 int main()
 {
