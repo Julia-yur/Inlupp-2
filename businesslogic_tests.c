@@ -20,7 +20,10 @@ int clean_suite(void)
 void test_create_destroy_wh(void)
 {
     warehouse_t *wh = warehouse_create();
+    
     CU_ASSERT_PTR_NOT_NULL(wh);
+    CU_ASSERT_TRUE(warehouse_is_empty(wh));
+   
     warehouse_destroy(wh);
 }
 

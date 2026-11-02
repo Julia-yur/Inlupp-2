@@ -19,7 +19,7 @@ struct shelf
     int stock;
 };
 
-struct warehouse 
+struct warehouse
 {
     ioopm_hash_table_t *ht_n_S;
     ioopm_hash_table_t *ht_sl_n;
@@ -57,7 +57,7 @@ static bool string_key_eq(elem_t k1, elem_t k2)
 
 warehouse_t *warehouse_create(void)
 {
-    warehouse_t *wh = calloc(1, sizeof (struct warehouse));
+    warehouse_t *wh = calloc(1, sizeof(struct warehouse));
 
     if (wh == NULL)
     {
@@ -69,7 +69,6 @@ warehouse_t *warehouse_create(void)
     wh->ht_sl_n = ioopm_hash_table_create(hash_str, string_key_eq);
 
     return wh;
-
 }
 
 void warehouse_destroy(warehouse_t *wh)
@@ -85,7 +84,6 @@ void warehouse_destroy(warehouse_t *wh)
             *ioopm_hash_table_iterator_current_value(iter);
 
         merch_t *merch = value.p;
-        merch_destroy(merch);
 
         ioopm_hash_table_iterator_advance(iter);
     }
@@ -134,7 +132,7 @@ bool warehouse_is_empty(warehouse_t *wh)
     return ioopm_hash_table_has_key(wh->ht_n_S, string_elem(key));
 } */
 
-void warehouse_insert(warehouse_t *wh, char *name, char *desc, int price)
+void warehouse_add_merch(warehouse_t *wh, char *name, char *desc, int price)
 {
     /* if (warehouse_has_merch(wh, name))
     {
@@ -142,10 +140,6 @@ void warehouse_insert(warehouse_t *wh, char *name, char *desc, int price)
     } */
 
     merch_t *merch = malloc(sizeof(merch_t));
-    if (merch == NULL)
-    {
-        return;
-    }
 
     merch->name = strdup(name);
     merch->desc = strdup(desc);

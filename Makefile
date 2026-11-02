@@ -15,3 +15,6 @@ testbl: bl
 
 memtestbl: bl
 	valgrind --leak-check=full ./bl
+
+gdbtestbl: bl
+	gdb ./bl
