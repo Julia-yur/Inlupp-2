@@ -26,8 +26,14 @@ size_t warehouse_merch_count(warehouse_t *wh);
 //Lookup if an item is present in the warehouse with its name.
 bool warehouse_has_merch(warehouse_t *wh, char *key);
 
-//Insert merch into warehouse.
-void warehouse_add_merch(warehouse_t *wh, char *name, char *desc, int price);
+//Add merch into warehouse if there is none.
+bool warehouse_add_merch(warehouse_t *wh, char *name, char *desc, int price);
+
+// Writes a pointer to the description to *result. The string is owned by
+// the warehouse: do not free it, and do not use it after edit/remove.
+bool warehouse_lookup_desc(warehouse_t *wh, char *name, char **result);
+
+bool warehouse_lookup_price(warehouse_t *wh, char *name, int *result);
 
 // Remove merch.
 bool warehouse_remove_merch(warehouse_t *wh, char *name);
@@ -35,14 +41,6 @@ bool warehouse_remove_merch(warehouse_t *wh, char *name);
 // Edit description or price of merch.
 bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_desc, int new_price);
 
-//Lookup key for merch and write merch->name to result pointer.
-bool warehouse_lookup_name(warehouse_t *wh, char *name, merch_t *result);
-
-//Lookup key for merch and write merch->desc to result pointer.
-bool warehouse_lookup_desc(warehouse_t *wh, char *name, merch_t *result);
-
-//Lookup key for merch and write merch->price to result pointer.
-bool warehouse_lookup_price(warehouse_t *wh, char *name, int *result);
 
 // Shelves and stock
 
