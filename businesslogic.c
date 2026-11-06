@@ -247,6 +247,11 @@ bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_desc, int new_p
 
 }
 
+ioopm_hash_table_iterator_t *warehouse_merch_iterator(warehouse_t *wh)
+{
+    return ioopm_hash_table_iterator_create(wh->ht_n_S);
+}
+
 bool warehouse_lookup_desc(warehouse_t *wh, char *name, char **result)
 {
     merch_t *merch = find_merch(wh, name);

@@ -1,6 +1,7 @@
 #pragma once
 #include <stddef.h>
 #include <stdbool.h>
+#include "hash_table_iterator.h"
 
 typedef struct merch merch_t;
 typedef struct shelf shelf_t;
@@ -40,6 +41,9 @@ bool warehouse_remove_merch(warehouse_t *wh, char *name);
 
 // Edit description or price of merch.
 bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_desc, int new_price);
+
+//Merch iterator to keep encapsulation
+ioopm_hash_table_iterator_t *warehouse_merch_iterator(warehouse_t *wh);
 
 
 // Shelves and stock

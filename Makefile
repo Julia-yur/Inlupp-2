@@ -18,3 +18,10 @@ memtestbl: bl
 
 gdbtestbl: bl
 	gdb ./bl
+
+#USERINTERFACE#
+ui: businesslogic.c utils.c user_interface.c $(DATA_STRUCTURES)
+	$(C_COMPILER) $(C_OPTIONS) $^ -o $@ $(C_LINK_OPTIONS) $(CUNIT_LINK)
+
+testui: ui
+	./ui
