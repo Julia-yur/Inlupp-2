@@ -56,22 +56,26 @@ int warehouse_get_stock(warehouse_t *wh, char *name);
 // Replenish the stock.
 bool warehouse_replenish(warehouse_t *wh, char *shelf, int quantity);
 
+// Decrease stock of an item by quantity. Fails (and changes nothing) if
+// there is not enough stock in total.
+bool warehouse_remove_stock(warehouse_t *wh, char *name, int quantity);
+
 // Carts
 
 // Init a cart.
 cart_t *cart_create(int id);
  
 // Destroy a cart
-void cart_destroy(cart_t **cart);
+void cart_destroy(cart_t *cart);
 
 // Add a merch to a cart.
-bool cart_add_merch(cart_t *cart, char *name, int quantity);
+bool cart_add_merch(cart_t *cart, warehouse_t *wh, char *name, int quantity);
 
 // Remove merch from cart.
 bool cart_remove_merch(cart_t *cart, char *name);
 
 // Calculate total sum.
-int cart_calculate_cost(cart_t *cart, warehouse_t *wh);
+bool cart_calculate_cost(cart_t *cart, warehouse_t *wh, int *result);
 
 // Make a purchase.
 bool cart_checkout(cart_t *cart, warehouse_t *wh);

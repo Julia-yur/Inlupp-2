@@ -4,7 +4,7 @@ C_LINK_OPTIONS = -lm
 CUNIT_LINK     = -lcunit
 GCOV_FLAG	   = -coverage
 
-DATA_STRUCTURES = hash_table.c linked_list.c
+DATA_STRUCTURES = hash_table.c linked_list.c 
 
 #BUSSINESSLOGIC#
 bl: businesslogic.c businesslogic_tests.c $(DATA_STRUCTURES)
