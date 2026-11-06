@@ -204,6 +204,7 @@ void test_cart_add_merch(void)
     cart_t *cart = cart_create(1);
 
     warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    warehouse_add_shelf(wh, "DP", "A1", 10);        
 
     CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 2));
 
@@ -212,12 +213,11 @@ void test_cart_add_merch(void)
     CU_ASSERT_EQUAL(cost, 20);
 
     // Att lägga till i kundvagnen ska inte ändra lagersaldot
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "DP"), 0);
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "DP"), 10);
 
     cart_destroy(cart);
     warehouse_destroy(wh);
 }
-
 
 void test_cart_add_same_merch_twice(void)
 {
@@ -352,6 +352,204 @@ void test_cart_checkout_atomic(void)
     warehouse_destroy(wh);
 }
 
+void test_add_shelf_and_stock(void)
+{
+    warehouse_t *wh = warehouse_create();
+    warehouse_add_merch(wh, "Kaka", "God", 10);
+
+    CU_ASSERT_TRUE(warehouse_add_shelf(wh, "Kaka", "A1", 5));
+    CU_ASSERT_TRUE(warehouse_add_shelf(wh, "Kaka", "A2", 3));
+    CU_ASSERT_TRUE(warehouse_has_shelf(wh, "A1"));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 8);
+
+    warehouse_destroy(wh);
+}
+
+void test_add_shelf_failures(void)
+{
+    warehouse_t *wh = warehouse_create();
+    warehouse_add_merch(wh, "Kaka", "God", 10);
+    warehouse_add_merch(wh, "Glass", "Kall", 20);
+    warehouse_add_shelf(wh, "Kaka", "A1", 5);
+
+    CU_ASSERT_FALSE(warehouse_add_shelf(wh, "Finns inte", "B1", 5)); // okänd vara
+    CU_ASSERT_FALSE(warehouse_add_shelf(wh, "Kaka", "B1", 0));       // quantity <= 0
+    CU_ASSERT_FALSE(warehouse_add_shelf(wh, "Kaka", "B1", -3));
+    CU_ASSERT_FALSE(warehouse_add_shelf(wh, "Glass", "A1", 5));      // hyllan tillhör annan vara
+    CU_ASSERT_FALSE(warehouse_add_shelf(NULL, "Kaka", "B1", 5));
+    CU_ASSERT_FALSE(warehouse_add_shelf(wh, NULL, "B1", 5));
+    CU_ASSERT_FALSE(warehouse_add_shelf(wh, "Kaka", NULL, 5));
+
+    CU_ASSERT_FALSE(warehouse_has_shelf(wh, "B1"));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Glass"), 0);
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 5);
+
+    warehouse_destroy(wh);
+}
+
+void test_add_shelf_same_merch_refills(void)
+{
+    warehouse_t *wh = warehouse_create();
+    warehouse_add_merch(wh, "Kaka", "God", 10);
+
+    CU_ASSERT_TRUE(warehouse_add_shelf(wh, "Kaka", "A1", 5));
+    CU_ASSERT_TRUE(warehouse_add_shelf(wh, "Kaka", "A1", 4));   // samma vara: fyller på
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 9);
+
+    warehouse_destroy(wh);
+}
+
+void test_replenish(void)
+{
+    warehouse_t *wh = warehouse_create();
+    warehouse_add_merch(wh, "Kaka", "God", 10);
+    warehouse_add_shelf(wh, "Kaka", "A1", 5);
+
+    CU_ASSERT_TRUE(warehouse_replenish(wh, "A1", 10));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 15);
+
+    CU_ASSERT_FALSE(warehouse_replenish(wh, "Finns inte", 5));
+    CU_ASSERT_FALSE(warehouse_replenish(wh, "A1", 0));
+    CU_ASSERT_FALSE(warehouse_replenish(wh, "A1", -1));
+    CU_ASSERT_FALSE(warehouse_replenish(wh, NULL, 5));
+    CU_ASSERT_FALSE(warehouse_replenish(NULL, "A1", 5));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 15);
+
+    warehouse_destroy(wh);
+}
+
+void test_remove_stock(void)
+{
+    warehouse_t *wh = warehouse_create();
+    warehouse_add_merch(wh, "Kaka", "God", 10);
+    warehouse_add_shelf(wh, "Kaka", "A1", 5);
+    warehouse_add_shelf(wh, "Kaka", "A2", 3);
+
+    // Uttag över flera hyllor (äldsta först): tömmer A1 och tar 1 från A2
+    CU_ASSERT_TRUE(warehouse_remove_stock(wh, "Kaka", 6));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 2);
+
+    // För stort uttag ska inte ändra något
+    CU_ASSERT_FALSE(warehouse_remove_stock(wh, "Kaka", 3));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 2);
+
+    CU_ASSERT_FALSE(warehouse_remove_stock(wh, "Kaka", 0));
+    CU_ASSERT_FALSE(warehouse_remove_stock(wh, "Finns inte", 1));
+    CU_ASSERT_FALSE(warehouse_remove_stock(NULL, "Kaka", 1));
+
+    // Tom hylla finns kvar och kan fyllas på igen
+    CU_ASSERT_TRUE(warehouse_remove_stock(wh, "Kaka", 2));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 0);
+    CU_ASSERT_TRUE(warehouse_has_shelf(wh, "A1"));
+    CU_ASSERT_TRUE(warehouse_replenish(wh, "A1", 4));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 4);
+
+    warehouse_destroy(wh);
+}
+
+void test_get_stock_failures(void)
+{
+    warehouse_t *wh = warehouse_create();
+    warehouse_add_merch(wh, "Kaka", "God", 10);
+
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 0);        // inga hyllor
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Finns inte"), 0);
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, NULL), 0);
+    CU_ASSERT_EQUAL(warehouse_get_stock(NULL, "Kaka"), 0);
+
+    warehouse_destroy(wh);
+}
+
+void test_add_merch_negative_price(void)
+{
+    warehouse_t *wh = warehouse_create();
+
+    CU_ASSERT_FALSE(warehouse_add_merch(wh, "Kaka", "God", -1));
+    CU_ASSERT_TRUE(warehouse_is_empty(wh));
+    CU_ASSERT_TRUE(warehouse_add_merch(wh, "Gratis", "Provbit", 0));
+
+    warehouse_destroy(wh);
+}
+
+void test_cart_checkout_multiple_shelves(void)
+{
+    warehouse_t *wh = warehouse_create();
+    cart_t *cart = cart_create(1);
+
+    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    warehouse_add_shelf(wh, "DP", "A1", 2);
+    warehouse_add_shelf(wh, "DP", "A2", 5);
+
+    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 4));
+    CU_ASSERT_TRUE(cart_checkout(cart, wh));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "DP"), 3);
+
+    cart_destroy(cart);
+    warehouse_destroy(wh);
+}
+
+void test_cart_reusable_after_checkout(void)
+{
+    warehouse_t *wh = warehouse_create();
+    cart_t *cart = cart_create(1);
+
+    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    warehouse_add_shelf(wh, "DP", "A1", 10);
+
+    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 2));
+    CU_ASSERT_TRUE(cart_checkout(cart, wh));
+
+    // Vagnen ska fungera som vanligt efter utcheckning (testar cart_replace_items)
+    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 3));
+    CU_ASSERT_TRUE(cart_checkout(cart, wh));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "DP"), 5);
+
+    cart_destroy(cart);
+    warehouse_destroy(wh);
+}
+
+void test_cart_remove_failures(void)
+{
+    cart_t *cart = cart_create(1);
+
+    CU_ASSERT_FALSE(cart_remove_merch(cart, "Finns inte"));
+    CU_ASSERT_FALSE(cart_remove_merch(cart, NULL));
+    CU_ASSERT_FALSE(cart_remove_merch(NULL, "DP"));
+
+    cart_destroy(cart);
+}
+
+void test_cart_checkout_empty_and_null(void)
+{
+    warehouse_t *wh = warehouse_create();
+    cart_t *cart = cart_create(1);
+
+    CU_ASSERT_TRUE(cart_checkout(cart, wh));     // tom vagn: lyckas utan att göra något
+    CU_ASSERT_FALSE(cart_checkout(NULL, wh));
+    CU_ASSERT_FALSE(cart_checkout(cart, NULL));
+
+    cart_destroy(cart);
+    warehouse_destroy(wh);
+}
+
+void test_cart_cost_merch_removed(void)
+{
+    warehouse_t *wh = warehouse_create();
+    cart_t *cart = cart_create(1);
+
+    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    cart_add_merch(cart, wh, "DP", 2);
+    warehouse_remove_merch(wh, "DP");
+
+    int cost = 123;
+    CU_ASSERT_FALSE(cart_calculate_cost(cart, wh, &cost));  // varan finns inte längre
+    CU_ASSERT_FALSE(cart_calculate_cost(NULL, wh, &cost));
+    CU_ASSERT_FALSE(cart_calculate_cost(cart, wh, NULL));
+
+    cart_destroy(cart);
+    warehouse_destroy(wh);
+}
+
 int main()
 {
     // First we try to set up CUnit, and exit if we fail
@@ -394,7 +592,20 @@ int main()
         (CU_add_test(my_test_suite, "Cart calculate cost multiple", test_cart_calculate_cost_multiple) == NULL) ||
         (CU_add_test(my_test_suite, "Cart checkout", test_cart_checkout) == NULL) ||
         (CU_add_test(my_test_suite, "Cart checkout atomic", test_cart_checkout_atomic) == NULL) ||
+        (CU_add_test(my_test_suite, "Add shelf and stock", test_add_shelf_and_stock) == NULL) ||
+        (CU_add_test(my_test_suite, "Add shelf failures", test_add_shelf_failures) == NULL) ||
+        (CU_add_test(my_test_suite, "Add shelf same merch refills", test_add_shelf_same_merch_refills) == NULL) ||
+        (CU_add_test(my_test_suite, "Replenish", test_replenish) == NULL) ||
+        (CU_add_test(my_test_suite, "Remove stock", test_remove_stock) == NULL) ||
+        (CU_add_test(my_test_suite, "Get stock failures", test_get_stock_failures) == NULL) ||
+        (CU_add_test(my_test_suite, "Add merch negative price", test_add_merch_negative_price) == NULL) ||
+        (CU_add_test(my_test_suite, "Cart checkout multiple shelves", test_cart_checkout_multiple_shelves) == NULL) ||
+        (CU_add_test(my_test_suite, "Cart reusable after checkout", test_cart_reusable_after_checkout) == NULL) ||
+        (CU_add_test(my_test_suite, "Cart remove failures", test_cart_remove_failures) == NULL) ||
+        (CU_add_test(my_test_suite, "Cart checkout empty and null", test_cart_checkout_empty_and_null) == NULL) ||
+        (CU_add_test(my_test_suite, "Cart cost merch removed", test_cart_cost_merch_removed) == NULL) ||
         0)
+
     {
         // If adding any of the tests fails, we tear down CUnit and exit
         CU_cleanup_registry();

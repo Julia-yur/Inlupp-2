@@ -56,8 +56,10 @@ int warehouse_get_stock(warehouse_t *wh, char *name);
 // Replenish the stock.
 bool warehouse_replenish(warehouse_t *wh, char *shelf, int quantity);
 
-// Decrease stock of an item by quantity. Fails (and changes nothing) if
-// there is not enough stock in total.
+// Removes `quantity` units of the merchandise `name`.
+// Stock is taken from the shelves in the order they were added (oldest shelf first).
+// Returns false without changing anything if the merchandise does not exist
+// or the total stock is insufficient.
 bool warehouse_remove_stock(warehouse_t *wh, char *name, int quantity);
 
 // Carts

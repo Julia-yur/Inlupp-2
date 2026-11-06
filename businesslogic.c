@@ -61,6 +61,17 @@ static bool string_key_eq(elem_t k1, elem_t k2)
   return strcmp(k1.s, k2.s) == 0; // if elem_t has field charstring
 }
 
+static void shelf_destroy(shelf_t *shelf)
+{
+    if (shelf == NULL)
+    {
+        return;
+    }
+
+    free(shelf->shelf_id);
+    free(shelf);
+}
+
 static void merch_destroy(merch_t *merch)
 {
     if (merch == NULL)
@@ -143,7 +154,7 @@ void warehouse_destroy(warehouse_t *wh)
     while (!ioopm_hash_table_iterator_at_end(shelf_iter))
     {
         elem_t value = ioopm_hash_table_iterator_current_value(shelf_iter);
-        free(value.p);
+        shelf_destroy(value.p); 
         ioopm_hash_table_iterator_advance(shelf_iter);
     }
     ioopm_hash_table_iterator_destroy(shelf_iter);
@@ -192,7 +203,7 @@ bool warehouse_has_merch(warehouse_t *wh, char *key)
 
 bool warehouse_add_merch(warehouse_t *wh, char *name, char *desc, int price)
 {
-   if (wh == NULL || name == NULL || desc == NULL || warehouse_has_merch(wh, name))
+   if (wh == NULL || name == NULL || desc == NULL || price < 0 || warehouse_has_merch(wh, name))
     {
         return false;
     }
@@ -220,20 +231,33 @@ bool warehouse_add_merch(warehouse_t *wh, char *name, char *desc, int price)
 
 bool warehouse_remove_merch(warehouse_t *wh, char *name)
 {
-    if (wh == NULL || name == NULL)
+    merch_t *merch = find_merch(wh, name);
+    if (merch == NULL)
     {
         return false;
     }
 
+    // 1. Ta bort och frigör alla hyllor som tillhör varan
+    ioopm_list_iterator_t *it = ioopm_list_iterator_create(merch->locs);
+    while (!ioopm_list_iterator_at_end(it))
+    {
+        shelf_t *shelf = ioopm_list_iterator_current(it).p;
+
+        elem_t removed_shelf;
+        // Ta bort ur tabellen INNAN shelf_id frigörs (nyckeln pekar på den strängen)
+        ioopm_hash_table_remove(wh->ht_sl_n, string_elem(shelf->shelf_id), &removed_shelf);
+        shelf_destroy(shelf);
+
+        ioopm_list_iterator_advance(it);
+    }
+    ioopm_list_iterator_destroy(it);
+
+    // 2. Ta bort varan ur tabellen INNAN namnet frigörs (samma nyckelskäl)
     elem_t removed;
-    if (!ioopm_hash_table_remove(wh->ht_n_S, string_elem(name), &removed))
-    {
-        return false;
-    }
+    ioopm_hash_table_remove(wh->ht_n_S, string_elem(name), &removed);
 
-    merch_t *merch = removed.p;
-
-    merch_destroy(merch);
+    // 3. Frigör varan och dess lista
+    merch_destroy(removed.p);
     return true;
 }
 
@@ -459,22 +483,26 @@ void cart_destroy(cart_t *cart)
     free(cart);
 }
 
-static void cart_clear(cart_t *cart)
+// Byter ut vagnens items mot en redan skapad tom tabell och frigör de gamla.
+static void cart_replace_items(cart_t *cart, ioopm_hash_table_t *fresh)
 {
     ioopm_hash_table_iterator_t *iter =
         ioopm_hash_table_iterator_create(cart->items);
 
-    while (!ioopm_hash_table_iterator_at_end(iter))
+    if (iter != NULL)
     {
-        cart_item_t *item = ioopm_hash_table_iterator_current_value(iter).p;
-        free(item->name);
-        free(item);
-        ioopm_hash_table_iterator_advance(iter);
+        while (!ioopm_hash_table_iterator_at_end(iter))
+        {
+            cart_item_t *item = ioopm_hash_table_iterator_current_value(iter).p;
+            free(item->name);
+            free(item);
+            ioopm_hash_table_iterator_advance(iter);
+        }
+        ioopm_hash_table_iterator_destroy(iter);
     }
-    ioopm_hash_table_iterator_destroy(iter);
 
     ioopm_hash_table_destroy(cart->items);
-    cart->items = ioopm_hash_table_create(hash_str, string_key_eq);
+    cart->items = fresh;
 }
 
 bool cart_add_merch(cart_t *cart, warehouse_t *wh, char *name, int quantity)
@@ -576,6 +604,10 @@ bool cart_checkout(cart_t *cart, warehouse_t *wh)
     // Pass 1: kontrollera att allt finns och räcker, ändra ingenting
     ioopm_hash_table_iterator_t *iter =
         ioopm_hash_table_iterator_create(cart->items);
+    if (iter == NULL)                                  
+    {
+        return false;
+    }
 
     while (!ioopm_hash_table_iterator_at_end(iter))
     {
@@ -591,8 +623,21 @@ bool cart_checkout(cart_t *cart, warehouse_t *wh)
     }
     ioopm_hash_table_iterator_destroy(iter);
 
+    // Skapa den nya tomma tabellen nu, så vi kan avbryta innan något ändras
+    ioopm_hash_table_t *fresh = ioopm_hash_table_create(hash_str, string_key_eq);
+    if (fresh == NULL)
+    {
+        return false;
+    }
+
+
     // Pass 2: allt är OK, minska lagret
     iter = ioopm_hash_table_iterator_create(cart->items);
+    if (iter == NULL)                                  
+    {
+        ioopm_hash_table_destroy(fresh);
+        return false;
+    }
     while (!ioopm_hash_table_iterator_at_end(iter))
     {
         cart_item_t *item = ioopm_hash_table_iterator_current_value(iter).p;
@@ -601,8 +646,7 @@ bool cart_checkout(cart_t *cart, warehouse_t *wh)
     }
     ioopm_hash_table_iterator_destroy(iter);
 
-    // Töm vagnen (se nedan)
-    cart_clear(cart);
+    cart_replace_items(cart, fresh);
     return true;
 }
 
