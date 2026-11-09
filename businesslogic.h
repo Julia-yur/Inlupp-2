@@ -45,7 +45,6 @@ bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_desc, int new_p
 //Merch iterator to keep encapsulation
 ioopm_hash_table_iterator_t *warehouse_merch_iterator(warehouse_t *wh);
 
-
 // Shelves and stock
 
 //Lookup if a storage location is present.
@@ -60,22 +59,28 @@ int warehouse_get_stock(warehouse_t *wh, char *name);
 // Replenish the stock.
 bool warehouse_replenish(warehouse_t *wh, char *shelf, int quantity);
 
+// Removes `quantity` units of the merchandise `name`.
+// Stock is taken from the shelves in the order they were added (oldest shelf first).
+// Returns false without changing anything if the merchandise does not exist
+// or the total stock is insufficient.
+bool warehouse_remove_stock(warehouse_t *wh, char *name, int quantity);
+
 // Carts
 
 // Init a cart.
 cart_t *cart_create(int id);
  
 // Destroy a cart
-void cart_destroy(cart_t **cart);
+void cart_destroy(cart_t *cart);
 
 // Add a merch to a cart.
-bool cart_add_merch(cart_t *cart, char *name, int quantity);
+bool cart_add_merch(cart_t *cart, warehouse_t *wh, char *name, int quantity);
 
 // Remove merch from cart.
 bool cart_remove_merch(cart_t *cart, char *name);
 
 // Calculate total sum.
-int cart_calculate_cost(cart_t *cart, warehouse_t *wh);
+bool cart_calculate_cost(cart_t *cart, warehouse_t *wh, int *result);
 
 // Make a purchase.
 bool cart_checkout(cart_t *cart, warehouse_t *wh);

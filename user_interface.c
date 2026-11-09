@@ -78,17 +78,39 @@ void menu_merch_list(warehouse_t *wh)
 
 void menu_merch_remove(warehouse_t *wh)
 {
+    char *name = ask_question_string("Name of item to remove:");
+    bool success = warehouse_remove_merch(wh, name);
+    
+    if (success) printf("%s was removed successfully\n", name);
+    else printf("Fail, %s is not in database\n", name);
 
+    free(name);
 }
 
 void menu_merch_edit(warehouse_t *wh)
 {
+    char *name = ask_question_string("Name of item to edit:");
+    char *desc = ask_question_string("Description: ");
+    int price = ask_question_int("Price: ");
+    char *con = ask_question_string("Are you sure? y/n\n");
+    char confirm = con[0];
 
+    if (confirm == 'y')
+    {
+        bool success = warehouse_edit_merch(wh, name, desc, price);
+        if (success) printf("%s was edited successfully!", name);
+        else printf("Fail! %s ...", name); // FIXTHIS: Vi måste kunna byta namnet också
+    }
+    else printf("Edit aborted and discarded.");
+
+    free(name);
+    free(desc);
+    free(con);
 }
 
 void menu_merch_stock(warehouse_t *wh)
 {
-
+    (void) wh; // Vi behöver kolla över warehouse_get stock eller inkludera list_iterator i bl.h 
 }
 
 void menu_merch_replenish(warehouse_t *wh)
@@ -159,11 +181,11 @@ void event_loop(warehouse_t *wh)
         }
         if (val == 'D')
         {
-            printf("Inte ännu implementerad\n");
+            menu_merch_remove(wh);
         }
         if (val == 'E')
         {
-            printf("Inte ännu implementerad\n");
+            menu_merch_edit(wh);
         }
         if (val == 'S')
         {
