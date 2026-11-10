@@ -41,6 +41,12 @@ bool warehouse_remove_merch(warehouse_t *wh, char *name);
 // Edit description or price of merch.
 bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_desc, int new_price);
 
+// Renames merchandise `old_name` to `new_name`.
+// Returns false without changing anything if `old_name` does not exist
+// or `new_name` is already in use. Shelves and stock are unaffected.
+// Carts are NOT updated; call cart_rename_merch on each cart afterwards.
+bool warehouse_rename_merch(warehouse_t *wh, char *old_name, char *new_name);
+
 
 // Shelves and stock
 
@@ -75,6 +81,10 @@ bool cart_add_merch(cart_t *cart, warehouse_t *wh, char *name, int quantity);
 
 // Remove merch from cart.
 bool cart_remove_merch(cart_t *cart, char *name);
+
+// Updates the name of a merchandise line in `cart` after a warehouse rename.
+// Returns true if the cart was updated or did not contain the merchandise.
+bool cart_rename_merch(cart_t *cart, char *old_name, char *new_name);
 
 // Calculate total sum.
 bool cart_calculate_cost(cart_t *cart, warehouse_t *wh, int *result);
