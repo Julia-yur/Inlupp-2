@@ -102,7 +102,7 @@ void menu_merch_edit(warehouse_t *wh)
         else printf("Fail! %s ...", name); // FIXTHIS: Vi måste kunna byta namnet också
     }
     else printf("Edit aborted and discarded.");
-
+    
     free(name);
     free(desc);
     free(con);
@@ -115,17 +115,29 @@ void menu_merch_stock(warehouse_t *wh)
 
 void menu_merch_replenish(warehouse_t *wh)
 {
-
+    char *name = ask_question_string("Name of item to replenish:");
+    char *shelf = ask_question_string("Shelf: ");
+    int ammount = ask_question_int("Amount to replenish: ");
+    
+    bool success = warehouse_replenish(char *name, char *shelf, int ammount);
+    //vi behöver utöka warehouse_replenish för att ta in namn också, den ska läsa
+    //namn och om hyllan inte finns ska den skaps.
 }
 
 void menu_cart_create(warehouse_t *wh)
 {
-
+    cart_t *c = cart_create(); // we need to make the cart count increase logic here to keep encapsulation.
 }
 
 void menu_cart_remove(warehouse_t *wh)
 {
+    char *name = ask_question_string("Name of item to remove:");
+    bool success = cart(wh, name);
+    
+    if (success) printf("%s was removed successfully\n", name);
+    else printf("Fail, %s is not in database\n", name);
 
+    free(name);
 }
 
 void menu_cart_merch_add(warehouse_t *wh)
