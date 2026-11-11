@@ -25,3 +25,6 @@ ui: businesslogic.c utils.c user_interface.c $(DATA_STRUCTURES)
 
 testui: ui
 	./ui
+
+testauto: ui
+	./ui < webstoretestown.txt

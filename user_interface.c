@@ -90,6 +90,22 @@ void menu_merch_remove(warehouse_t *wh)
 void menu_merch_edit(warehouse_t *wh)
 {
     char *name = ask_question_string("Name of item to edit:");
+    if (!warehouse_has_merch(wh, name))
+    {
+        printf("%s is not in database, edit aborted and discarded.\n", name);
+        free(name);
+        return;
+    }
+
+    char *new_name = ask_question_string("New name: ");
+    if (warehouse_has_merch(wh, new_name) && strcmp(name, new_name) != 0)
+    {
+        printf("%s is already present in databse, edit aborted and discarded.\n", new_name);
+        free(new_name);
+        free(name);
+        return;
+    }
+
     char *desc = ask_question_string("Description: ");
     int price = ask_question_int("Price: ");
     char *con = ask_question_string("Are you sure? y/n\n");
@@ -97,39 +113,88 @@ void menu_merch_edit(warehouse_t *wh)
 
     if (confirm == 'y')
     {
-        bool success = warehouse_edit_merch(wh, name, desc, price);
-        if (success) printf("%s was edited successfully!", name);
-        else printf("Fail! %s ...", name); // FIXTHIS: Vi måste kunna byta namnet också
+        bool success = warehouse_edit_merch(wh, name, new_name, desc, price);
+        if (success) printf("%s was edited successfully!\n", name);
+        else printf("Price cannot be negative.\n");
     }
-    else printf("Edit aborted and discarded.");
+    else printf("Edit aborted and discarded.\n");
     
     free(name);
+    free(new_name);
     free(desc);
     free(con);
 }
 
 void menu_merch_stock(warehouse_t *wh)
 {
-    (void) wh; // Vi behöver kolla över warehouse_get stock eller inkludera list_iterator i bl.h 
+    char *name = ask_question_string("Name of item to show stock:");
+    if (!warehouse_has_merch(wh, name))
+    {
+        printf("%s is not in database.\n", name);
+        free(name);
+        return;
+    }
+
+    ioopm_list_iterator_t *iter = warehouse_stock_iterator(wh, name);
+    if (ioopm_list_iterator_at_end(iter))
+    {
+        printf("%s has no assigned shelves\n", name);
+        ioopm_list_iterator_destroy(iter);
+        free(name);
+        return;
+    }
+
+    while (!ioopm_list_iterator_at_end(iter))
+    {
+        shelf_t *shelf = ioopm_list_iterator_current(iter).p;
+        printf("Shelf: %s, Ammount: %d\n", shelf_get_id(shelf), shelf_get_stock(shelf));
+        ioopm_list_iterator_advance(iter);
+    }
+
+    ioopm_list_iterator_destroy(iter);
+    free(name);
 }
 
 void menu_merch_replenish(warehouse_t *wh)
 {
+    char *shelf = ask_question_shelf("Shelf: ");
+
     char *name = ask_question_string("Name of item to replenish:");
-    char *shelf = ask_question_string("Shelf: ");
-    int ammount = ask_question_int("Amount to replenish: ");
+    if (!warehouse_has_merch(wh, name))
+    {
+        printf("%s is not in database.\n", name);
+        free(name);
+        free(shelf);
+        return;
+    }
+
+    int ammount = 0;
+    while (ammount <= 0)
+    {
+        ammount = ask_question_int("Amount to replenish: ");
+        if (ammount <= 0) printf("You cant replenish 0 or a negative number!\n");
+    }
     
-    bool success = warehouse_replenish(char *name, char *shelf, int ammount);
-    //vi behöver utöka warehouse_replenish för att ta in namn också, den ska läsa
-    //namn och om hyllan inte finns ska den skaps.
+    bool success = warehouse_add_shelf(wh, name, shelf, ammount);
+    if (success)
+    {
+        printf("Replenished %d of %s on shelf %s\n", ammount, name, shelf);
+    }
+    else
+    {
+        printf("%s is already uppupied by another item.\n", name);
+    }
+
+    free(name);
+    free(shelf);
 }
 
-void menu_cart_create(warehouse_t *wh)
+/* void menu_cart_create(warehouse_t *wh)
 {
     cart_t *c = cart_create(); // we need to make the cart count increase logic here to keep encapsulation.
-}
+} */
 
-void menu_cart_remove(warehouse_t *wh)
+/* void menu_cart_remove(warehouse_t *wh)
 {
     char *name = ask_question_string("Name of item to remove:");
     bool success = cart(wh, name);
@@ -138,7 +203,7 @@ void menu_cart_remove(warehouse_t *wh)
     else printf("Fail, %s is not in database\n", name);
 
     free(name);
-}
+} */
 
 void menu_cart_merch_add(warehouse_t *wh)
 {
@@ -201,11 +266,11 @@ void event_loop(warehouse_t *wh)
         }
         if (val == 'S')
         {
-            printf("Inte ännu implementerad\n");
+            menu_merch_stock(wh);
         }
         if (val == 'P')
         {
-            printf("Inte ännu implementerad\n");
+            menu_merch_replenish(wh);
         }
         if (val == 'C')
         {

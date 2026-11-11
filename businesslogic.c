@@ -25,6 +25,8 @@ struct warehouse
 {
     ioopm_hash_table_t *ht_n_S;
     ioopm_hash_table_t *ht_sl_n;
+    ioopm_list_t *carts;        //List of our carts to be able to check items reserved in cart.
+    int next_cart_id;       
 };
 
 typedef struct cart_item
@@ -117,11 +119,14 @@ warehouse_t *warehouse_create(void)
 
     wh->ht_n_S = ioopm_hash_table_create(hash_str, string_key_eq);
     wh->ht_sl_n = ioopm_hash_table_create(hash_str, string_key_eq);
+    wh->carts = ioopm_list_create();
+    wh->next_cart_id = 1;
 
     if (wh->ht_n_S == NULL || wh->ht_sl_n == NULL)
     {
         if (wh->ht_n_S != NULL)  ioopm_hash_table_destroy(wh->ht_n_S);
         if (wh->ht_sl_n != NULL) ioopm_hash_table_destroy(wh->ht_sl_n);
+        if (wh->carts != NULL) ioopm_list_destroy(wh->carts);
         free(wh);
         return NULL;
     }
@@ -131,8 +136,8 @@ warehouse_t *warehouse_create(void)
 
 void warehouse_destroy(warehouse_t *wh) 
 {
-     if (wh == NULL)
-     {
+    if (wh == NULL)
+    {
         return;
     }
 
@@ -162,6 +167,20 @@ void warehouse_destroy(warehouse_t *wh)
     // Förstör hashtabellerna
     ioopm_hash_table_destroy((wh)->ht_n_S);
     ioopm_hash_table_destroy((wh)->ht_sl_n);
+
+    //Frigöt carts
+    if (wh->carts != NULL);
+    {
+        ioopm_list_iterator_t *cart_iter = ioopm_list_iterator_create(wh->carts);
+        while (!ioopm_list_iterator_at_end(cart_iter))
+        {
+            cart_t *c = ioopm_list_iterator_current(cart_iter).p;
+            cart_destroy(c);
+            ioopm_list_iterator_advance(cart_iter);
+        }
+        ioopm_list_iterator_destroy(cart_iter);
+        ioopm_list_destroy(wh->carts);
+    }
 
     free(wh);
 }
@@ -261,7 +280,7 @@ bool warehouse_remove_merch(warehouse_t *wh, char *name)
     return true;
 }
 
-bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_desc, int new_price)
+bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_name, char *new_desc, int new_price)
 {
     if (wh == NULL || name == NULL || new_desc == NULL || new_price < 0)
     {
@@ -275,7 +294,11 @@ bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_desc, int new_p
         return false;
     }
 
-    merch_t *merch = result.p;
+    elem_t removed;
+
+    ioopm_hash_table_remove(wh->ht_n_S, string_elem(name), &removed);
+
+    merch_t *merch = removed.p;
 
     char *desc_copy = strdup(new_desc);
     if (desc_copy == NULL)
@@ -283,9 +306,21 @@ bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_desc, int new_p
         return false;
     }
 
+    char *name_copy = strdup(new_name);
+    if (name_copy == NULL)
+    {
+        return false;
+    }
+
     free(merch->desc);
+    free(merch->name);
+    merch->name = name_copy;
     merch->desc = desc_copy;
     merch->price = new_price;
+
+    ioopm_hash_table_insert(wh->ht_n_S, string_elem(merch->name), ptr_elem(merch));
+
+    //DODE: Iterera genom carts och ändra keys för att inte förstöra deras ht. Gör detta med en hjälpfunktion och in liten loop här.
 
     return true;
 
@@ -445,9 +480,27 @@ bool warehouse_remove_stock(warehouse_t *wh, char *name, int quantity)
     return true;
 }
 
+ioopm_list_iterator_t *warehouse_stock_iterator(warehouse_t *wh, char *name)
+{
+    merch_t *merch = find_merch(wh, name);
+
+    return ioopm_list_iterator_create(merch->locs);
+}
+
+char *shelf_get_id(shelf_t *shelf)
+{
+    return shelf->shelf_id;
+}
+
+int shelf_get_stock(shelf_t *shelf)
+{
+    if (shelf == NULL) return 0;
+    return shelf->stock;
+}
+
 // Carts
 
-cart_t *cart_create(int id)
+cart_t *cart_create(warehouse_t *wh)
 {
     cart_t *cart = calloc(1, (sizeof(struct cart)));
     if (cart == NULL)
@@ -455,14 +508,50 @@ cart_t *cart_create(int id)
         return NULL;
     }
 
-    cart->id = id;
     cart->items = ioopm_hash_table_create(hash_str, string_key_eq);
     if (cart->items == NULL)
     {
         free(cart);
         return NULL;
     }
+    if (wh != NULL && wh->carts != NULL)
+    {
+        cart->id = wh->next_cart_id++;
+        ioopm_list_append(wh->carts, ptr_elem(cart));
+    }
+    else
+    {
+        cart->id = 1;
+    }
     return cart;
+}
+
+int cart_get_id(cart_t *cart)
+{
+    (void)cart;
+    return 0;
+}
+
+cart_t *warehouse_get_cart(warehouse_t *wh, int cart_id)
+{
+    (void)cart_id;
+    (void)wh;
+    return NULL;
+}
+
+bool cart_remove(warehouse_t *wh, int cart_id)
+{
+    (void)cart_id;
+    (void)wh;
+    return false;
+}
+
+bool cart_remove_merch_ammount(cart_t *cart, char *name, int ammount)
+{
+    (void)cart;
+    (void)name;
+    (void)ammount;
+    return false;
 }
 
 void cart_destroy(cart_t *cart)

@@ -46,17 +46,17 @@ void test_edit_merch(void)
       warehouse_t *wh = warehouse_create();
     warehouse_add_merch(wh, "Lampa", "Bordslampa", 199);
 
-    CU_ASSERT_TRUE(warehouse_edit_merch(wh, "Lampa", "Golvlampa", 299));
+    CU_ASSERT_TRUE(warehouse_edit_merch(wh, "Lampa", "lamp", "Golvlampa", 299));
 
     int price;
-    CU_ASSERT_TRUE(warehouse_lookup_price(wh, "Lampa", &price));
+    CU_ASSERT_TRUE(warehouse_lookup_price(wh, "lamp", &price));
     CU_ASSERT_EQUAL(price, 299);
 
     char *desc;
-    CU_ASSERT_TRUE(warehouse_lookup_desc(wh, "Lampa", &desc));
+    CU_ASSERT_TRUE(warehouse_lookup_desc(wh, "lamp", &desc));
     CU_ASSERT_STRING_EQUAL(desc, "Golvlampa");
 
-    CU_ASSERT_FALSE(warehouse_edit_merch(wh, "Finns inte", "x", 1));
+    CU_ASSERT_FALSE(warehouse_edit_merch(wh, "Finns inte", "hello", "x", 1));
 
     warehouse_destroy(wh);
 }
@@ -121,10 +121,10 @@ void test_edit_merch_failures(void)
     warehouse_t *wh = warehouse_create();
     warehouse_add_merch(wh, "Lampa", "Bordslampa", 199);
 
-    CU_ASSERT_FALSE(warehouse_edit_merch(NULL, "Lampa", "x", 1));
-    CU_ASSERT_FALSE(warehouse_edit_merch(wh, NULL, "x", 1));
-    CU_ASSERT_FALSE(warehouse_edit_merch(wh, "Lampa", NULL, 1));
-    CU_ASSERT_FALSE(warehouse_edit_merch(wh, "Lampa", "x", -5));
+    CU_ASSERT_FALSE(warehouse_edit_merch(NULL, "Lampa", "lamp", "x", 1));
+    CU_ASSERT_FALSE(warehouse_edit_merch(wh, NULL, "lamp", "x", 1));
+    CU_ASSERT_FALSE(warehouse_edit_merch(wh, "Lampa", "lamp", NULL, 1));
+    CU_ASSERT_FALSE(warehouse_edit_merch(wh, "Lampa", "lamp", "x", -5));
 
     // Misslyckade edits ska inte ha ändrat något
     int price;
