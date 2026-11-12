@@ -27,4 +27,7 @@ testui: ui
 	./ui
 
 testauto: ui
-	./ui < webstoretestown.txt
+	./ui < webstoretest.txt
+
+memtestauto: ui
+	valgrind --leak-check=full ./ui < webstoretest.txt

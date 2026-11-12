@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <ctype.h>
 
 struct item
 {
@@ -109,7 +109,7 @@ void menu_merch_edit(warehouse_t *wh)
     char *desc = ask_question_string("Description: ");
     int price = ask_question_int("Price: ");
     char *con = ask_question_string("Are you sure? y/n\n");
-    char confirm = con[0];
+    char confirm = tolower(con[0]);
 
     if (confirm == 'y')
     {
@@ -189,46 +189,125 @@ void menu_merch_replenish(warehouse_t *wh)
     free(shelf);
 }
 
-/* void menu_cart_create(warehouse_t *wh)
+void menu_cart_create(warehouse_t *wh)
 {
-    cart_t *c = cart_create(); // we need to make the cart count increase logic here to keep encapsulation.
-} */
+    cart_t *c = cart_create(wh);
+    printf("Cart number %d was created\n", cart_get_id(c));
+}
 
-/* void menu_cart_remove(warehouse_t *wh)
+void menu_cart_remove(warehouse_t *wh)
 {
-    char *name = ask_question_string("Name of item to remove:");
-    bool success = cart(wh, name);
+    int id = ask_question_int("ID of cart to remove:");
     
-    if (success) printf("%s was removed successfully\n", name);
-    else printf("Fail, %s is not in database\n", name);
+    char *str = ask_question_string("Are you shure? y/n\n");
+    char val = tolower(str[0]);
+    free(str);
 
-    free(name);
-} */
+    if (val == 'y')
+    {
+        if (cart_remove(wh, id))
+        {
+            printf("Cart remove success\n");
+        }
+        else printf("Cart remove fail, not in database\n");
+    }
+    else printf("Remove aborted\n");
+}
 
 void menu_cart_merch_add(warehouse_t *wh)
 {
+    int id = ask_question_int("ID of cart:");
+    cart_t *cart = warehouse_get_cart(wh, id);
+    if (cart == NULL)
+    {
+        printf("Cart remove fail, not in database\n");
+        return;
+    }
 
+    char *name = ask_question_string("Name: ");
+    if (!warehouse_has_merch(wh, name))
+    {
+        printf("Cart remove fail, not in database\n");
+        free(name);
+        return;
+    }
+
+    int ammount = ask_question_int("Ammount: ");
+    if (cart_add_merch(cart, wh, name, ammount))
+    {
+        printf("Added %d of %s in cart %d\n", ammount, name, id);
+    }
+    else
+    {
+        printf("Fail, invalid ammount or stock is reserved.\n");
+    }
+
+    free(name);
 }
 
 void menu_cart_merch_remove(warehouse_t *wh)
 {
+    int id = ask_question_int("ID of cart:");
+    cart_t *cart = warehouse_get_cart(wh, id);
+    if (cart == NULL)
+    {
+        printf("Cart remove fail, not in database\n");
+        return;
+    }
 
+    char *name = ask_question_string("Name: ");
+    int ammount = ask_question_int("Ammount: ");
+    if (cart_add_merch(cart, wh, name, ammount))
+    {
+        printf("Removed %d of %s in cart %d\n", ammount, name, id);
+    }
+    else
+    {
+        printf("Fail, could not remove.\n");
+    }
+
+    free(name);
 }
 
 void menu_cart_cost(warehouse_t *wh)
 {
+    int id = ask_question_int("ID of cart:");
+    cart_t *cart = warehouse_get_cart(wh, id);
+    if (cart == NULL)
+    {
+        printf("Cart remove fail, not in database\n");
+        return;
+    }
 
+    int result = 0;
+    if (cart_calculate_cost(cart, wh, &result))
+    {
+        printf("Cost for cart %d: %d\n", id, result);
+    }
+    else printf("Price fault?");
 }
 
-void menu_cart_checkout(warehouse_t *)
+void menu_cart_checkout(warehouse_t *wh)
 {
+    int id = ask_question_int("ID of cart:");
+    cart_t *cart = warehouse_get_cart(wh, id);
+    if (cart == NULL)
+    {
+        printf("Cart remove fail, not in database\n");
+        return;
+    }
 
+    if (cart_checkout(cart, wh))
+    {
+        printf("Cart %d checked out\n", id);
+    }
+    else printf("Checkout fault?");
 }
 
 bool menu_quit(warehouse_t *wh)
 {
     char *str = ask_question_string("Are you shure you want to quit? y/n\n");
-    char val = str[0];
+    char val = tolower(str[0]);
     free(str);
 
     if (val == 'y')
@@ -244,7 +323,7 @@ void event_loop(warehouse_t *wh)
     while (true)
     {
         char *str = ask_question_menu();
-        char val = str[0];
+        char val = toupper(str[0]);
         free(str);
     
 
@@ -274,26 +353,27 @@ void event_loop(warehouse_t *wh)
         }
         if (val == 'C')
         {
-            printf("Inte ännu implementerad\n");
+            menu_cart_create(wh);
         }
         if (val == 'R')
         {
-            printf("Inte ännu implementerad\n");
+            menu_cart_remove(wh);
         }
         if (val == '+')
         {
-            printf("Inte ännu implementerad\n");
+            menu_cart_merch_add(wh);
         }
         if (val == '-')
         {
-            printf("Inte ännu implementerad\n");
-        }if (val == '=')
+            menu_cart_merch_remove(wh);
+        }
+        if (val == '=')
         {
-            printf("Inte ännu implementerad\n");
+            menu_cart_cost(wh);
         }
         if (val == 'O')
         {
-            printf("Inte ännu implementerad\n");
+            menu_cart_checkout(wh);
         }
         if (val == 'Q')
         {
