@@ -31,3 +31,17 @@ testauto: ui
 
 memtestauto: ui
 	valgrind --leak-check=full ./ui < webstoretest.txt
+
+#COVERAGE#
+bl_coverage: businesslogic.c businesslogic_tests.c $(DATA_STRUCTURES)
+	$(C_COMPILER) $(GCOV_FLAG) $(C_OPTIONS) $^ -o $@ $(C_LINK_OPTIONS) $(CUNIT_LINK)
+
+covtestbl: bl_coverage
+	./bl_coverage
+	gcov -b bl_coverage-businesslogic.gcda
+
+#HTML COVERAGE REPORT#
+covreport: bl_coverage
+	./bl_coverage
+	lcov --directory . --capture --output-file app.info --rc lcov_branch_coverage=1
+	genhtml -o html_report app.info --branch-coverage
