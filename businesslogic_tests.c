@@ -137,6 +137,28 @@ void test_edit_merch_failures(void)
     warehouse_destroy(wh);
 }
 
+void test_rename_merch(void)
+{
+    warehouse_t *wh = warehouse_create();
+    warehouse_add_merch(wh, "Lampa", "Bordslampa", 199);
+    warehouse_add_merch(wh, "Stol", "Köksstol", 399);
+    warehouse_add_shelf(wh, "Lampa", "A1", 5);
+
+    CU_ASSERT_TRUE(warehouse_rename_merch(wh, "Lampa", "Golvlampa"));
+    CU_ASSERT_FALSE(warehouse_has_merch(wh, "Lampa"));
+    CU_ASSERT_TRUE(warehouse_has_merch(wh, "Golvlampa"));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Golvlampa"), 5);   // hyllan följde med
+    CU_ASSERT_EQUAL(warehouse_merch_count(wh), 2);
+
+    CU_ASSERT_FALSE(warehouse_rename_merch(wh, "Golvlampa", "Stol"));   // upptaget
+    CU_ASSERT_FALSE(warehouse_rename_merch(wh, "Finns inte", "X"));
+    CU_ASSERT_FALSE(warehouse_rename_merch(wh, NULL, "X"));
+    CU_ASSERT_FALSE(warehouse_rename_merch(wh, "Stol", NULL));
+    CU_ASSERT_TRUE(warehouse_rename_merch(wh, "Stol", "Stol"));
+
+    warehouse_destroy(wh);
+}
+
 void test_lookup_failures(void)
 {
     warehouse_t *wh = warehouse_create();
@@ -274,6 +296,32 @@ void test_cart_remove_merch(void)
     int cost = 0;
     CU_ASSERT_TRUE(cart_calculate_cost(cart, wh, &cost));
     CU_ASSERT_EQUAL(cost, 0);
+
+    cart_destroy(cart);
+    warehouse_destroy(wh);
+}
+
+void test_cart_rename_merch(void)
+{
+    warehouse_t *wh = warehouse_create();
+    cart_t *cart = cart_create(1);
+
+    warehouse_add_merch(wh, "Lampa", "Bordslampa", 100);
+    warehouse_add_shelf(wh, "Lampa", "A1", 10);
+    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "Lampa", 2));
+
+    CU_ASSERT_TRUE(warehouse_rename_merch(wh, "Lampa", "Golvlampa"));
+    CU_ASSERT_TRUE(cart_rename_merch(cart, "Lampa", "Golvlampa"));
+
+    int cost = 0;
+    CU_ASSERT_TRUE(cart_calculate_cost(cart, wh, &cost));
+    CU_ASSERT_EQUAL(cost, 200);
+
+    CU_ASSERT_TRUE(cart_checkout(cart, wh));
+    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Golvlampa"), 8);
+
+    // Vagn utan varan påverkas inte
+    CU_ASSERT_TRUE(cart_rename_merch(cart, "Finns inte", "X"));
 
     cart_destroy(cart);
     warehouse_destroy(wh);
@@ -604,6 +652,8 @@ int main()
         (CU_add_test(my_test_suite, "Cart remove failures", test_cart_remove_failures) == NULL) ||
         (CU_add_test(my_test_suite, "Cart checkout empty and null", test_cart_checkout_empty_and_null) == NULL) ||
         (CU_add_test(my_test_suite, "Cart cost merch removed", test_cart_cost_merch_removed) == NULL) ||
+        (CU_add_test(my_test_suite, "Rename merch", test_rename_merch) == NULL) ||
+        (CU_add_test(my_test_suite, "Cart rename merch", test_cart_rename_merch) == NULL) ||
         0)
 
     {

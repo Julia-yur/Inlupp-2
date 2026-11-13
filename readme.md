@@ -43,3 +43,29 @@ cart_item_t was implemented so the cart is owning its own keys.
 
 shelf_t needs to get merch_t *merch when the design for the shelves got clear,
 and warehouse_remove_stock was missing when cart_checkout was implemented.
+
+Backend i C för ett varuhus. Hanterar varor, hyllor, lagersaldo och varukorgar.
+
+##Struktur
+
+- businesslogic.c/.h: affärslogiken (warehouse, merch, shelf, cart)
+- businesslogic_tests.c: CUnit-tester
+- hash_table.c/.h, linked_list.c/.h (+ iteratorer): generiska datastrukturer
+
+##Datamodell
+
+- Ett lager (warehouse) har två hashtabeller: varunamn → vara, och hyllnamn → hylla.
+- En vara kan ligga på flera hyllor, men en hylla kan bara innehålla en sorts vara.
+- En varukorg (cart) är ett separat objekt med varunamn och antal. Den påverkar inte
+  lagret förrän cart_checkout anropas.
+- Typerna är opaka i headerfilen, så anroparen kommer bara åt dem via funktionerna.
+
+##Designval och avgränsningar
+
+- Uttag ur lagret (warehouse_remove_stock) sker från hyllorna i den ordning de lades till.
+- Tomma hyllor (stock 0) behålls och kan fyllas på igen med warehouse_replenish.
+- cart_checkout och warehouse_remove_stock är atomiska: allt kontrolleras först,
+  och vid misslyckande ändras ingenting.
+- Allokeringsfel hanteras i de flesta funktioner, men inte för
+  ioopm_hash_table_insert (returnerar void) eller skapande av iteratorer.
+- Varje struct äger sina strängar (strdup) och frigör dem själv.

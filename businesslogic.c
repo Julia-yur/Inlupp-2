@@ -86,7 +86,7 @@ static void merch_destroy(merch_t *merch)
         ioopm_list_destroy(merch->locs);
     }
     free(merch);
-}
+} 
 
 static merch_t *find_merch(warehouse_t *wh, char *name)
 {
@@ -289,6 +289,46 @@ bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_desc, int new_p
 
     return true;
 
+}
+
+bool warehouse_rename_merch(warehouse_t *wh, char *old_name, char *new_name)
+{
+    if (wh == NULL || old_name == NULL || new_name == NULL)
+    {
+        return false;
+    }
+
+    merch_t *merch = find_merch(wh, old_name);
+    if (merch == NULL)
+    {
+        return false;                       // varan finns inte
+    }
+
+    if (strcmp(old_name, new_name) == 0)
+    {
+        return true;                        // samma namn: inget att göra
+    }
+
+    if (warehouse_has_merch(wh, new_name))
+    {
+        return false;                       // nya namnet är upptaget
+    }
+
+    char *copy = strdup(new_name);
+    if (copy == NULL)
+    {
+        return false;
+    }
+
+    // Ta bort ur tabellen INNAN det gamla namnet frigörs (nyckeln pekar på det)
+    elem_t removed;
+    ioopm_hash_table_remove(wh->ht_n_S, string_elem(old_name), &removed);
+
+    free(merch->name);
+    merch->name = copy;
+
+    ioopm_hash_table_insert(wh->ht_n_S, string_elem(merch->name), ptr_elem(merch));
+    return true;
 }
 
 bool warehouse_lookup_desc(warehouse_t *wh, char *name, char **result)
@@ -560,6 +600,44 @@ bool cart_remove_merch(cart_t *cart, char *name)
     cart_item_t *item = removed.p;
     free(item->name);
     free(item);
+    return true;
+}
+
+bool cart_rename_merch(cart_t *cart, char *old_name, char *new_name)
+{
+    if (cart == NULL || old_name == NULL || new_name == NULL)
+    {
+        return false;
+    }
+
+    elem_t removed;
+    if (!ioopm_hash_table_remove(cart->items, string_elem(old_name), &removed))
+    {
+        return true;                    // varan låg inte i vagnen: inget att göra
+    }
+    cart_item_t *item = removed.p;
+
+    // Finns det nya namnet redan i vagnen? Slå ihop raderna.
+    elem_t existing;
+    if (ioopm_hash_table_lookup(cart->items, string_elem(new_name), &existing))
+    {
+        ((cart_item_t *)existing.p)->quantity += item->quantity;
+        free(item->name);
+        free(item);
+        return true;
+    }
+
+    char *copy = strdup(new_name);
+    if (copy == NULL)
+    {
+        // Lägg tillbaka raden så vagnen inte förlorar den
+        ioopm_hash_table_insert(cart->items, string_elem(item->name), ptr_elem(item));
+        return false;
+    }
+
+    free(item->name);
+    item->name = copy;
+    ioopm_hash_table_insert(cart->items, string_elem(item->name), ptr_elem(item));
     return true;
 }
 
