@@ -42,10 +42,9 @@ struct cart
     ioopm_hash_table_t *items;
 };
 
-// HASHING FUNKTIONER
+//HASHING FUNKTIONER
 
-/// HASH-FUNKTION TAGEN FRÅN STACK OVERFLOW https://stackoverflow.com/a/7666577,
-/// modifierad
+/// HASH-FUNKTION TAGEN FRÅN STACK OVERFLOW https://stackoverflow.com/a/7666577, modifierad
 static size_t hash_str(elem_t str)
 {
     size_t hash = 5381;
@@ -59,7 +58,7 @@ static size_t hash_str(elem_t str)
     return hash;
 }
 
-// String compare för elem_t från inluppsbeskrivningen
+//String compare för elem_t från inluppsbeskrivningen
 static bool string_key_eq(elem_t k1, elem_t k2)
 {
     return strcmp(k1.s, k2.s) == 0; // if elem_t has field charstring
@@ -226,8 +225,7 @@ bool warehouse_has_merch(warehouse_t *wh, char *key)
 
 bool warehouse_add_merch(warehouse_t *wh, char *name, char *desc, int price)
 {
-    if (wh == NULL || name == NULL || desc == NULL || price < 0 ||
-        warehouse_has_merch(wh, name))
+   if (wh == NULL || name == NULL || desc == NULL || price < 0 || warehouse_has_merch(wh, name))
     {
         return false;
     }

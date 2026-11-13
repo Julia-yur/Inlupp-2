@@ -597,6 +597,7 @@ void test_cart_remove_ammount(void)
     cart_calculate_cost(cart, wh, &result);
     CU_ASSERT_EQUAL(result, 0);
 
+    cart_destroy(cart);
     warehouse_destroy(wh);
 }
 

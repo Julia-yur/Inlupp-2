@@ -100,6 +100,10 @@ bool cart_add_merch(cart_t *cart, warehouse_t *wh, char *name, int quantity);
 // Remove merch from cart.
 bool cart_remove_merch(cart_t *cart, char *name);
 
+// Updates the name of a merchandise line in `cart` after a warehouse rename.
+// Returns true if the cart was updated or did not contain the merchandise.
+bool cart_rename_merch(cart_t *cart, char *old_name, char *new_name);
+
 // Calculate total sum.
 bool cart_calculate_cost(cart_t *cart, warehouse_t *wh, int *result);
 

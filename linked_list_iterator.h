@@ -4,6 +4,7 @@
 
 #include "linked_list.h"
 
+
 typedef struct list_iterator ioopm_list_iterator_t;
 
 /// @brief Create a new iterator
