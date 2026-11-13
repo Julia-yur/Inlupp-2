@@ -1,6 +1,8 @@
 #pragma once
 #include <stddef.h>
 #include <stdbool.h>
+#include "hash_table_iterator.h"
+#include "linked_list_iterator.h"
 
 typedef struct merch merch_t;
 typedef struct shelf shelf_t;
@@ -39,14 +41,10 @@ bool warehouse_lookup_price(warehouse_t *wh, char *name, int *result);
 bool warehouse_remove_merch(warehouse_t *wh, char *name);
 
 // Edit description or price of merch.
-bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_desc, int new_price);
+bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_name, char *new_desc, int new_price);
 
-// Renames merchandise `old_name` to `new_name`.
-// Returns false without changing anything if `old_name` does not exist
-// or `new_name` is already in use. Shelves and stock are unaffected.
-// Carts are NOT updated; call cart_rename_merch on each cart afterwards.
-bool warehouse_rename_merch(warehouse_t *wh, char *old_name, char *new_name);
-
+//Merch iterator to keep encapsulation
+ioopm_hash_table_iterator_t *warehouse_merch_iterator(warehouse_t *wh);
 
 // Shelves and stock
 
@@ -68,13 +66,33 @@ bool warehouse_replenish(warehouse_t *wh, char *shelf, int quantity);
 // or the total stock is insufficient.
 bool warehouse_remove_stock(warehouse_t *wh, char *name, int quantity);
 
+//Stock iterator to keep encapsulation
+ioopm_list_iterator_t *warehouse_stock_iterator(warehouse_t *wh, char *name);
+
+//get shelf id, to be used in ui with the iterator
+char *shelf_get_id(shelf_t *shelf);
+
+//get shelf stock
+int shelf_get_stock(shelf_t *shelf);
+
 // Carts
 
 // Init a cart.
-cart_t *cart_create(int id);
+cart_t *cart_create(warehouse_t *wh);
  
 // Destroy a cart
 void cart_destroy(cart_t *cart);
+
+//remove a cart
+bool cart_remove(warehouse_t *wh, int cart_id);
+
+int cart_get_id(cart_t *cart);
+
+//find a cart in warehouse by it's id
+cart_t *warehouse_get_cart(warehouse_t *wh, int cart_id);
+
+//remove an ammount of merch from cart
+bool cart_remove_merch_ammount(cart_t *cart, char *name, int ammount);
 
 // Add a merch to a cart.
 bool cart_add_merch(cart_t *cart, warehouse_t *wh, char *name, int quantity);
