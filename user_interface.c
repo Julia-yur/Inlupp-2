@@ -1,5 +1,8 @@
+#include "hash_table_iterator.h"
 #include "utils.h"
 #include "businesslogic.h"
+#include <stdbool.h>
+#include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -64,13 +67,27 @@ void menu_merch_list(warehouse_t *wh)
 {
     ioopm_hash_table_iterator_t *iter = warehouse_merch_iterator(wh);
 
+    int i = 0;
     while (ioopm_hash_table_iterator_at_end(iter) == false)
     {
         char *name = ioopm_hash_table_iterator_current_key(iter).s;
         printf("%s\n", name);
         ioopm_hash_table_iterator_advance(iter);
+        i++;
 
-        //DODGE: Skriv endast var 20e merch och fråga N för nej och ENTER och anykey för nästa sida
+        if (i == 20 && ioopm_hash_table_iterator_at_end(iter) == false)
+        {
+            char *con = ask_question_string("Continue listings? y/n\n");
+            char confirm = tolower(con[0]);
+
+            if (confirm != 'n')
+            {
+                i = 0;
+            } 
+            else break;
+    
+            free(con); 
+        }
     }
     
     ioopm_hash_table_iterator_destroy(iter);

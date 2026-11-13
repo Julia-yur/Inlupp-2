@@ -318,10 +318,15 @@ static void warehouse_edit_merch_carts(cart_t *cart, char *name,
         ioopm_hash_table_remove(cart->items, string_elem(name), &removed);
         
         cart_item_t *old_item = removed.p;
+        
         char *new = strdup(new_name);
+        
+        free(old_item->name);
+        
         old_item->name = new;
 
         ioopm_hash_table_insert(cart->items, string_elem(new), ptr_elem(old_item));
+        
     }
 }
 
@@ -367,8 +372,8 @@ bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_name,
     ioopm_hash_table_insert(wh->ht_n_S, string_elem(merch->name),
                             ptr_elem(merch));
 
-    // DODE: Iterera genom carts och ändra keys för att inte förstöra deras ht.
-    // Gör detta med en hjälpfunktion och in liten loop här.
+    
+    // Kolla om merch är reserverad, loopa igenom alla carts och uppdatera.
     if (cart_reserved_stock(wh, name) != 0)
     {
         ioopm_list_iterator_t *it = ioopm_list_iterator_create(wh->carts);
@@ -847,20 +852,16 @@ bool cart_checkout(cart_t *cart, warehouse_t *wh)
     ioopm_hash_table_iterator_destroy(iter);
 
     // Skapa den nya tomma tabellen nu, så vi kan avbryta innan något ändras
-    ioopm_hash_table_t *fresh =
+    /* ioopm_hash_table_t *fresh =
         ioopm_hash_table_create(hash_str, string_key_eq);
     if (fresh == NULL)
     {
         return false;
-    }
+    } */
 
     // Pass 2: allt är OK, minska lagret
     iter = ioopm_hash_table_iterator_create(cart->items);
-    if (iter == NULL)
-    {
-        ioopm_hash_table_destroy(fresh);
-        return false;
-    }
+
     while (!ioopm_hash_table_iterator_at_end(iter))
     {
         cart_item_t *item = ioopm_hash_table_iterator_current_value(iter).p;
@@ -869,6 +870,8 @@ bool cart_checkout(cart_t *cart, warehouse_t *wh)
     }
     ioopm_hash_table_iterator_destroy(iter);
 
-    cart_replace_items(cart, fresh);
+    int c = cart_get_id(cart);
+
+    cart_remove(wh, c);
     return true;
 }

@@ -33,7 +33,7 @@ testauto: ui
 	./ui < webstoretest.txt
 
 memtestauto: ui
-	valgrind --leak-check=full ./ui < webstoretestown.txt
+	valgrind --leak-check=full ./ui < webstoretestown2.txt
 
 #COVERAGE#
 bl_coverage: businesslogic.c businesslogic_tests.c $(DATA_STRUCTURES)
