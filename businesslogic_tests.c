@@ -20,602 +20,604 @@ int clean_suite(void)
 
 void test_create_destroy_wh(void)
 {
-    warehouse_t *wh = warehouse_create();
-    
-    CU_ASSERT_PTR_NOT_NULL(wh);
-    CU_ASSERT_TRUE(warehouse_is_empty(wh));
-   
-    warehouse_destroy(wh);
-}
+    warehouse_t *wh = ioopm_warehouse_create();
 
+    CU_ASSERT_PTR_NOT_NULL(wh);
+    CU_ASSERT_TRUE(ioopm_warehouse_is_empty(wh));
+
+    ioopm_warehouse_destroy(wh);
+}
 
 void test_insert_merch_one()
 {
-    warehouse_t *wh = warehouse_create();
+    warehouse_t *wh = ioopm_warehouse_create();
 
-    CU_ASSERT_TRUE(warehouse_add_merch(wh, "DP", "Dr Pepper", 10));
-    CU_ASSERT_FALSE(warehouse_is_empty(wh));
-    CU_ASSERT_TRUE(warehouse_has_merch(wh, "DP"));
-    CU_ASSERT_EQUAL(warehouse_merch_count(wh), 1);
+    CU_ASSERT_TRUE(ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10));
+    CU_ASSERT_FALSE(ioopm_warehouse_is_empty(wh));
+    CU_ASSERT_TRUE(ioopm_warehouse_has_merch(wh, "DP"));
+    CU_ASSERT_EQUAL(ioopm_warehouse_merch_count(wh), 1);
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_edit_merch(void)
 {
-      warehouse_t *wh = warehouse_create();
-    warehouse_add_merch(wh, "Lampa", "Bordslampa", 199);
+    warehouse_t *wh = ioopm_warehouse_create();
+    ioopm_warehouse_add_merch(wh, "Lampa", "Bordslampa", 199);
 
-    CU_ASSERT_TRUE(warehouse_edit_merch(wh, "Lampa", "lamp", "Golvlampa", 299));
+    CU_ASSERT_TRUE(ioopm_warehouse_edit_merch(wh, "Lampa", "lamp", "Golvlampa", 299));
 
     int price;
-    CU_ASSERT_TRUE(warehouse_lookup_price(wh, "lamp", &price));
+    CU_ASSERT_TRUE(ioopm_warehouse_lookup_price(wh, "lamp", &price));
     CU_ASSERT_EQUAL(price, 299);
 
     char *desc;
-    CU_ASSERT_TRUE(warehouse_lookup_desc(wh, "lamp", &desc));
+    CU_ASSERT_TRUE(ioopm_warehouse_lookup_desc(wh, "lamp", &desc));
     CU_ASSERT_STRING_EQUAL(desc, "Golvlampa");
 
-    CU_ASSERT_FALSE(warehouse_edit_merch(wh, "Finns inte", "hello", "x", 1));
+    CU_ASSERT_FALSE(ioopm_warehouse_edit_merch(wh, "Finns inte", "hello", "x", 1));
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_insert_merch_duplicate(void)
 {
-    warehouse_t *wh = warehouse_create();
+    warehouse_t *wh = ioopm_warehouse_create();
 
-    CU_ASSERT_TRUE(warehouse_add_merch (wh, "Lampa", "Bordslampa", 12));
-    CU_ASSERT_FALSE(warehouse_add_merch(wh,"Lampa", "Badrumslampa", 50));
-    CU_ASSERT_EQUAL(warehouse_merch_count(wh), 1);
+    CU_ASSERT_TRUE(ioopm_warehouse_add_merch(wh, "Lampa", "Bordslampa", 12));
+    CU_ASSERT_FALSE(ioopm_warehouse_add_merch(wh, "Lampa", "Badrumslampa", 50));
+    CU_ASSERT_EQUAL(ioopm_warehouse_merch_count(wh), 1);
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_remove_merch(void)
 {
-    warehouse_t *wh = warehouse_create();
+    warehouse_t *wh = ioopm_warehouse_create();
 
-    warehouse_add_merch(wh, "Lampa", "Bordslampa", 199);
-    warehouse_add_merch(wh, "Stol", "Köksstol", 399);
+    ioopm_warehouse_add_merch(wh, "Lampa", "Bordslampa", 199);
+    ioopm_warehouse_add_merch(wh, "Stol", "Köksstol", 399);
 
-    CU_ASSERT_TRUE(warehouse_remove_merch(wh, "Lampa"));
-    CU_ASSERT_FALSE(warehouse_has_merch(wh, "Lampa"));
-    CU_ASSERT_TRUE(warehouse_has_merch(wh, "Stol"));
-    CU_ASSERT_EQUAL(warehouse_merch_count(wh), 1);
+    CU_ASSERT_TRUE(ioopm_warehouse_remove_merch(wh, "Lampa"));
+    CU_ASSERT_FALSE(ioopm_warehouse_has_merch(wh, "Lampa"));
+    CU_ASSERT_TRUE(ioopm_warehouse_has_merch(wh, "Stol"));
+    CU_ASSERT_EQUAL(ioopm_warehouse_merch_count(wh), 1);
 
-    CU_ASSERT_FALSE(warehouse_remove_merch(wh, "Lampa"));
-    CU_ASSERT_FALSE(warehouse_remove_merch(wh, NULL));
-    CU_ASSERT_FALSE(warehouse_remove_merch(NULL, "Stol"));
+    CU_ASSERT_FALSE(ioopm_warehouse_remove_merch(wh, "Lampa"));
+    CU_ASSERT_FALSE(ioopm_warehouse_remove_merch(wh, NULL));
+    CU_ASSERT_FALSE(ioopm_warehouse_remove_merch(NULL, "Stol"));
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_null_args_basic(void)
 {
-    warehouse_t *wh = warehouse_create();
+    warehouse_t *wh = ioopm_warehouse_create();
 
-    CU_ASSERT_EQUAL(warehouse_merch_count(NULL), 0);
-    CU_ASSERT_TRUE(warehouse_is_empty(NULL));
-    CU_ASSERT_FALSE(warehouse_has_merch(NULL, "Lampa"));
-    CU_ASSERT_FALSE(warehouse_has_merch(wh, NULL));
+    CU_ASSERT_EQUAL(ioopm_warehouse_merch_count(NULL), 0);
+    CU_ASSERT_TRUE(ioopm_warehouse_is_empty(NULL));
+    CU_ASSERT_FALSE(ioopm_warehouse_has_merch(NULL, "Lampa"));
+    CU_ASSERT_FALSE(ioopm_warehouse_has_merch(wh, NULL));
 
-    warehouse_destroy(wh);
-    warehouse_destroy(NULL);   // ska vara ofarligt
+    ioopm_warehouse_destroy(wh);
+    ioopm_warehouse_destroy(NULL); // ska vara ofarligt
 }
 
 void test_add_merch_null_args(void)
 {
-    warehouse_t *wh = warehouse_create();
+    warehouse_t *wh = ioopm_warehouse_create();
 
-    CU_ASSERT_FALSE(warehouse_add_merch(NULL, "Lampa", "Bordslampa", 10));
-    CU_ASSERT_FALSE(warehouse_add_merch(wh, NULL, "Bordslampa", 10));
-    CU_ASSERT_FALSE(warehouse_add_merch(wh, "Lampa", NULL, 10));
-    CU_ASSERT_TRUE(warehouse_is_empty(wh));
+    CU_ASSERT_FALSE(ioopm_warehouse_add_merch(NULL, "Lampa", "Bordslampa", 10));
+    CU_ASSERT_FALSE(ioopm_warehouse_add_merch(wh, NULL, "Bordslampa", 10));
+    CU_ASSERT_FALSE(ioopm_warehouse_add_merch(wh, "Lampa", NULL, 10));
+    CU_ASSERT_TRUE(ioopm_warehouse_is_empty(wh));
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_edit_merch_failures(void)
 {
-    warehouse_t *wh = warehouse_create();
-    warehouse_add_merch(wh, "Lampa", "Bordslampa", 199);
+    warehouse_t *wh = ioopm_warehouse_create();
+    ioopm_warehouse_add_merch(wh, "Lampa", "Bordslampa", 199);
 
-    CU_ASSERT_FALSE(warehouse_edit_merch(NULL, "Lampa", "lamp", "x", 1));
-    CU_ASSERT_FALSE(warehouse_edit_merch(wh, NULL, "lamp", "x", 1));
-    CU_ASSERT_FALSE(warehouse_edit_merch(wh, "Lampa", "lamp", NULL, 1));
-    CU_ASSERT_FALSE(warehouse_edit_merch(wh, "Lampa", "lamp", "x", -5));
+    CU_ASSERT_FALSE(ioopm_warehouse_edit_merch(NULL, "Lampa", "lamp", "x", 1));
+    CU_ASSERT_FALSE(ioopm_warehouse_edit_merch(wh, NULL, "lamp", "x", 1));
+    CU_ASSERT_FALSE(ioopm_warehouse_edit_merch(wh, "Lampa", "lamp", NULL, 1));
+    CU_ASSERT_FALSE(ioopm_warehouse_edit_merch(wh, "Lampa", "lamp", "x", -5));
 
     // Misslyckade edits ska inte ha ändrat något
     int price;
     char *desc;
-    CU_ASSERT_TRUE(warehouse_lookup_price(wh, "Lampa", &price));
+    CU_ASSERT_TRUE(ioopm_warehouse_lookup_price(wh, "Lampa", &price));
     CU_ASSERT_EQUAL(price, 199);
-    CU_ASSERT_TRUE(warehouse_lookup_desc(wh, "Lampa", &desc));
+    CU_ASSERT_TRUE(ioopm_warehouse_lookup_desc(wh, "Lampa", &desc));
     CU_ASSERT_STRING_EQUAL(desc, "Bordslampa");
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_lookup_failures(void)
 {
-    warehouse_t *wh = warehouse_create();
-    warehouse_add_merch(wh, "Lampa", "Bordslampa", 199);
+    warehouse_t *wh = ioopm_warehouse_create();
+    ioopm_warehouse_add_merch(wh, "Lampa", "Bordslampa", 199);
 
     int price = -1;
     char *desc = NULL;
 
     // Vara som inte finns
-    CU_ASSERT_FALSE(warehouse_lookup_price(wh, "Finns inte", &price));
-    CU_ASSERT_FALSE(warehouse_lookup_desc(wh, "Finns inte", &desc));
+    CU_ASSERT_FALSE(ioopm_warehouse_lookup_price(wh, "Finns inte", &price));
+    CU_ASSERT_FALSE(ioopm_warehouse_lookup_desc(wh, "Finns inte", &desc));
 
     // NULL-argument
-    CU_ASSERT_FALSE(warehouse_lookup_price(NULL, "Lampa", &price));
-    CU_ASSERT_FALSE(warehouse_lookup_price(wh, NULL, &price));
-    CU_ASSERT_FALSE(warehouse_lookup_price(wh, "Lampa", NULL));
-    CU_ASSERT_FALSE(warehouse_lookup_desc(NULL, "Lampa", &desc));
-    CU_ASSERT_FALSE(warehouse_lookup_desc(wh, NULL, &desc));
-    CU_ASSERT_FALSE(warehouse_lookup_desc(wh, "Lampa", NULL));
+    CU_ASSERT_FALSE(ioopm_warehouse_lookup_price(NULL, "Lampa", &price));
+    CU_ASSERT_FALSE(ioopm_warehouse_lookup_price(wh, NULL, &price));
+    CU_ASSERT_FALSE(ioopm_warehouse_lookup_price(wh, "Lampa", NULL));
+    CU_ASSERT_FALSE(ioopm_warehouse_lookup_desc(NULL, "Lampa", &desc));
+    CU_ASSERT_FALSE(ioopm_warehouse_lookup_desc(wh, NULL, &desc));
+    CU_ASSERT_FALSE(ioopm_warehouse_lookup_desc(wh, "Lampa", NULL));
 
     // Utparametrarna ska vara orörda efter misslyckade anrop
     CU_ASSERT_EQUAL(price, -1);
     CU_ASSERT_PTR_NULL(desc);
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_has_shelf_empty(void)
 {
-    warehouse_t *wh = warehouse_create();
+    warehouse_t *wh = ioopm_warehouse_create();
 
-    CU_ASSERT_FALSE(warehouse_has_shelf(wh, "A1"));
-    CU_ASSERT_FALSE(warehouse_has_shelf(wh, NULL));
-    CU_ASSERT_FALSE(warehouse_has_shelf(NULL, "A1"));
+    CU_ASSERT_FALSE(ioopm_warehouse_has_shelf(wh, "A1"));
+    CU_ASSERT_FALSE(ioopm_warehouse_has_shelf(wh, NULL));
+    CU_ASSERT_FALSE(ioopm_warehouse_has_shelf(NULL, "A1"));
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_many_merch(void)
 {
-    warehouse_t *wh = warehouse_create();
+    warehouse_t *wh = ioopm_warehouse_create();
     char name[32];
 
     // Fler varor än hashtabellens startstorlek, så att kollisioner testas
     for (int i = 0; i < 100; i++)
     {
         snprintf(name, sizeof(name), "vara%d", i);
-        CU_ASSERT_TRUE(warehouse_add_merch(wh, name, "beskrivning", i));
+        CU_ASSERT_TRUE(ioopm_warehouse_add_merch(wh, name, "beskrivning", i));
     }
-    CU_ASSERT_EQUAL(warehouse_merch_count(wh), 100);
+    CU_ASSERT_EQUAL(ioopm_warehouse_merch_count(wh), 100);
 
     for (int i = 0; i < 100; i += 2)
     {
         snprintf(name, sizeof(name), "vara%d", i);
-        CU_ASSERT_TRUE(warehouse_remove_merch(wh, name));
+        CU_ASSERT_TRUE(ioopm_warehouse_remove_merch(wh, name));
     }
-    CU_ASSERT_EQUAL(warehouse_merch_count(wh), 50);
+    CU_ASSERT_EQUAL(ioopm_warehouse_merch_count(wh), 50);
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_cart_add_merch(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
 
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
-    warehouse_add_shelf(wh, "DP", "A1", 10);        
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_shelf(wh, "DP", "A1", 10);
 
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 2));
+    CU_ASSERT_TRUE(ioopm_cart_add_merch(cart, wh, "DP", 2));
 
     int cost = 0;
-    CU_ASSERT_TRUE(cart_calculate_cost(cart, wh, &cost));
+    CU_ASSERT_TRUE(ioopm_cart_calculate_cost(cart, wh, &cost));
     CU_ASSERT_EQUAL(cost, 20);
 
     // Att lägga till i kundvagnen ska inte ändra lagersaldot
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "DP"), 10);
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "DP"), 10);
 
-    //cart_destroy(cart);
-    warehouse_destroy(wh);
+    // ioopm_cart_destroy(cart);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_cart_add_same_merch_twice(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
 
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
-    warehouse_add_shelf(wh, "DP", "A01", 10);
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_shelf(wh, "DP", "A01", 10);
 
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 2));
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 3));
+    CU_ASSERT_TRUE(ioopm_cart_add_merch(cart, wh, "DP", 2));
+    CU_ASSERT_TRUE(ioopm_cart_add_merch(cart, wh, "DP", 3));
 
     int cost = 0;
-    CU_ASSERT_TRUE(cart_calculate_cost(cart, wh, &cost));
+    CU_ASSERT_TRUE(ioopm_cart_calculate_cost(cart, wh, &cost));
     CU_ASSERT_EQUAL(cost, 50);
 
-    //cart_destroy(cart);
-    warehouse_destroy(wh);
+    // ioopm_cart_destroy(cart);
+    ioopm_warehouse_destroy(wh);
 }
-
 
 void test_cart_add_failures(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
 
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
 
-    CU_ASSERT_FALSE(cart_add_merch(cart, wh, "Coke", 1));
-    CU_ASSERT_FALSE(cart_add_merch(cart, wh, "DP", 0));
-    CU_ASSERT_FALSE(cart_add_merch(cart, wh, "DP", -1));
-    CU_ASSERT_FALSE(cart_add_merch(cart, wh, NULL, 1));
-    CU_ASSERT_FALSE(cart_add_merch(NULL, wh, "DP", 1));
-    CU_ASSERT_FALSE(cart_add_merch(cart, NULL, "DP", 1));
+    CU_ASSERT_FALSE(ioopm_cart_add_merch(cart, wh, "Coke", 1));
+    CU_ASSERT_FALSE(ioopm_cart_add_merch(cart, wh, "DP", 0));
+    CU_ASSERT_FALSE(ioopm_cart_add_merch(cart, wh, "DP", -1));
+    CU_ASSERT_FALSE(ioopm_cart_add_merch(cart, wh, NULL, 1));
+    CU_ASSERT_FALSE(ioopm_cart_add_merch(NULL, wh, "DP", 1));
+    CU_ASSERT_FALSE(ioopm_cart_add_merch(cart, NULL, "DP", 1));
 
     int cost = 0;
-    CU_ASSERT_TRUE(cart_calculate_cost(cart, wh, &cost));
+    CU_ASSERT_TRUE(ioopm_cart_calculate_cost(cart, wh, &cost));
     CU_ASSERT_EQUAL(cost, 0);
 
-    //cart_destroy(cart);
-    warehouse_destroy(wh);
+    // ioopm_cart_destroy(cart);
+    ioopm_warehouse_destroy(wh);
 }
-
 
 void test_cart_remove_merch(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
 
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
-    warehouse_add_shelf(wh, "DP", "A01", 10);
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_shelf(wh, "DP", "A01", 10);
 
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 2));
-    CU_ASSERT_TRUE(cart_remove_merch(cart, "DP"));
+    CU_ASSERT_TRUE(ioopm_cart_add_merch(cart, wh, "DP", 2));
+    CU_ASSERT_TRUE(ioopm_cart_remove_merch(cart, "DP"));
 
     int cost = 0;
-    CU_ASSERT_TRUE(cart_calculate_cost(cart, wh, &cost));
+    CU_ASSERT_TRUE(ioopm_cart_calculate_cost(cart, wh, &cost));
     CU_ASSERT_EQUAL(cost, 0);
 
-    //cart_destroy(cart);
-    warehouse_destroy(wh);
+    // ioopm_cart_destroy(cart);
+    ioopm_warehouse_destroy(wh);
 }
-
 
 void test_cart_calculate_cost_multiple(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
 
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
-    warehouse_add_merch(wh, "Coke", "Coca Cola", 15);
-    warehouse_add_shelf(wh, "DP", "A01", 10);
-    warehouse_add_shelf(wh, "Coke", "B01", 10);
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_merch(wh, "Coke", "Coca Cola", 15);
+    ioopm_warehouse_add_shelf(wh, "DP", "A01", 10);
+    ioopm_warehouse_add_shelf(wh, "Coke", "B01", 10);
 
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 2));
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "Coke", 3));
+    CU_ASSERT_TRUE(ioopm_cart_add_merch(cart, wh, "DP", 2));
+    CU_ASSERT_TRUE(ioopm_cart_add_merch(cart, wh, "Coke", 3));
 
     int cost = 0;
-    CU_ASSERT_TRUE(cart_calculate_cost(cart, wh, &cost));
+    CU_ASSERT_TRUE(ioopm_cart_calculate_cost(cart, wh, &cost));
     CU_ASSERT_EQUAL(cost, 65);
 
-    //cart_destroy(cart);
-    warehouse_destroy(wh);
+    // ioopm_cart_destroy(cart);
+    ioopm_warehouse_destroy(wh);
 }
-
 
 void test_cart_checkout(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
 
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
-    warehouse_add_shelf(wh, "DP", "A1", 10);
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_shelf(wh, "DP", "A1", 10);
 
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 3));
-    CU_ASSERT_TRUE(cart_checkout(cart, wh));
+    CU_ASSERT_TRUE(ioopm_cart_add_merch(cart, wh, "DP", 3));
+    CU_ASSERT_TRUE(ioopm_cart_checkout(cart, wh));
 
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "DP"), 7);
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "DP"), 7);
 
     int cost = 0;
-    CU_ASSERT_TRUE(cart_calculate_cost(cart, wh, &cost));
-    CU_ASSERT_EQUAL(cost, 0);
+    CU_ASSERT_PTR_EQUAL(ioopm_warehouse_get_cart(wh, 1), NULL);
 
-    //cart_destroy(cart);
-    warehouse_destroy(wh);
+    // ioopm_cart_destroy(cart);
+    ioopm_warehouse_destroy(wh);
 }
-
-
-/* void test_cart_checkout_atomic(void)
-{
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
-
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
-    warehouse_add_merch(wh, "Coke", "Coca Cola", 15);
-
-    warehouse_add_shelf(wh, "DP", "A1", 10);
-    warehouse_add_shelf(wh, "Coke", "B1", 5);
-
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 2));
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "Coke", 5));
-
-    // Köpet ska misslyckas eftersom det inte finns tillräckligt med Coke
-    CU_ASSERT_FALSE(cart_checkout(cart, wh));
-
-    // Inget lagersaldo ska ha ändrats
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "DP"), 10);
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Coke"), 2);
-
-    // Kundvagnen ska fortfarande innehålla produkterna
-    int cost = 0;
-    CU_ASSERT_TRUE(cart_calculate_cost(cart, wh, &cost));
-    CU_ASSERT_EQUAL(cost, 95);
-
-    //cart_destroy(cart);
-    warehouse_destroy(wh);
-} */
 
 void test_add_shelf_and_stock(void)
 {
-    warehouse_t *wh = warehouse_create();
-    warehouse_add_merch(wh, "Kaka", "God", 10);
+    warehouse_t *wh = ioopm_warehouse_create();
+    ioopm_warehouse_add_merch(wh, "Kaka", "God", 10);
 
-    CU_ASSERT_TRUE(warehouse_add_shelf(wh, "Kaka", "A1", 5));
-    CU_ASSERT_TRUE(warehouse_add_shelf(wh, "Kaka", "A2", 3));
-    CU_ASSERT_TRUE(warehouse_has_shelf(wh, "A1"));
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 8);
+    CU_ASSERT_TRUE(ioopm_warehouse_add_shelf(wh, "Kaka", "A1", 5));
+    CU_ASSERT_TRUE(ioopm_warehouse_add_shelf(wh, "Kaka", "A2", 3));
+    CU_ASSERT_TRUE(ioopm_warehouse_has_shelf(wh, "A1"));
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Kaka"), 8);
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_add_shelf_failures(void)
 {
-    warehouse_t *wh = warehouse_create();
-    warehouse_add_merch(wh, "Kaka", "God", 10);
-    warehouse_add_merch(wh, "Glass", "Kall", 20);
-    warehouse_add_shelf(wh, "Kaka", "A1", 5);
+    warehouse_t *wh = ioopm_warehouse_create();
+    ioopm_warehouse_add_merch(wh, "Kaka", "God", 10);
+    ioopm_warehouse_add_merch(wh, "Glass", "Kall", 20);
+    ioopm_warehouse_add_shelf(wh, "Kaka", "A1", 5);
 
-    CU_ASSERT_FALSE(warehouse_add_shelf(wh, "Finns inte", "B1", 5)); // okänd vara
-    CU_ASSERT_FALSE(warehouse_add_shelf(wh, "Kaka", "B1", 0));       // quantity <= 0
-    CU_ASSERT_FALSE(warehouse_add_shelf(wh, "Kaka", "B1", -3));
-    CU_ASSERT_FALSE(warehouse_add_shelf(wh, "Glass", "A1", 5));      // hyllan tillhör annan vara
-    CU_ASSERT_FALSE(warehouse_add_shelf(NULL, "Kaka", "B1", 5));
-    CU_ASSERT_FALSE(warehouse_add_shelf(wh, NULL, "B1", 5));
-    CU_ASSERT_FALSE(warehouse_add_shelf(wh, "Kaka", NULL, 5));
+    CU_ASSERT_FALSE(ioopm_warehouse_add_shelf(wh, "Finns inte", "B1", 5)); // okänd vara
+    CU_ASSERT_FALSE(ioopm_warehouse_add_shelf(wh, "Kaka", "B1", 0));       // quantity <= 0
+    CU_ASSERT_FALSE(ioopm_warehouse_add_shelf(wh, "Kaka", "B1", -3));
+    CU_ASSERT_FALSE(ioopm_warehouse_add_shelf(wh, "Glass", "A1", 5)); // hyllan tillhör annan vara
+    CU_ASSERT_FALSE(ioopm_warehouse_add_shelf(NULL, "Kaka", "B1", 5));
+    CU_ASSERT_FALSE(ioopm_warehouse_add_shelf(wh, NULL, "B1", 5));
+    CU_ASSERT_FALSE(ioopm_warehouse_add_shelf(wh, "Kaka", NULL, 5));
 
-    CU_ASSERT_FALSE(warehouse_has_shelf(wh, "B1"));
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Glass"), 0);
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 5);
+    CU_ASSERT_FALSE(ioopm_warehouse_has_shelf(wh, "B1"));
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Glass"), 0);
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Kaka"), 5);
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_add_shelf_same_merch_refills(void)
 {
-    warehouse_t *wh = warehouse_create();
-    warehouse_add_merch(wh, "Kaka", "God", 10);
+    warehouse_t *wh = ioopm_warehouse_create();
+    ioopm_warehouse_add_merch(wh, "Kaka", "God", 10);
 
-    CU_ASSERT_TRUE(warehouse_add_shelf(wh, "Kaka", "A1", 5));
-    CU_ASSERT_TRUE(warehouse_add_shelf(wh, "Kaka", "A1", 4));   // samma vara: fyller på
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 9);
+    CU_ASSERT_TRUE(ioopm_warehouse_add_shelf(wh, "Kaka", "A1", 5));
+    CU_ASSERT_TRUE(ioopm_warehouse_add_shelf(wh, "Kaka", "A1", 4)); // samma vara: fyller på
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Kaka"), 9);
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_replenish(void)
 {
-    warehouse_t *wh = warehouse_create();
-    warehouse_add_merch(wh, "Kaka", "God", 10);
-    warehouse_add_shelf(wh, "Kaka", "A1", 5);
+    warehouse_t *wh = ioopm_warehouse_create();
+    ioopm_warehouse_add_merch(wh, "Kaka", "God", 10);
+    ioopm_warehouse_add_shelf(wh, "Kaka", "A1", 5);
 
-    CU_ASSERT_TRUE(warehouse_replenish(wh, "A1", 10));
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 15);
+    CU_ASSERT_TRUE(ioopm_warehouse_replenish(wh, "A1", 10));
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Kaka"), 15);
 
-    CU_ASSERT_FALSE(warehouse_replenish(wh, "Finns inte", 5));
-    CU_ASSERT_FALSE(warehouse_replenish(wh, "A1", 0));
-    CU_ASSERT_FALSE(warehouse_replenish(wh, "A1", -1));
-    CU_ASSERT_FALSE(warehouse_replenish(wh, NULL, 5));
-    CU_ASSERT_FALSE(warehouse_replenish(NULL, "A1", 5));
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 15);
+    CU_ASSERT_FALSE(ioopm_warehouse_replenish(wh, "Finns inte", 5));
+    CU_ASSERT_FALSE(ioopm_warehouse_replenish(wh, "A1", 0));
+    CU_ASSERT_FALSE(ioopm_warehouse_replenish(wh, "A1", -1));
+    CU_ASSERT_FALSE(ioopm_warehouse_replenish(wh, NULL, 5));
+    CU_ASSERT_FALSE(ioopm_warehouse_replenish(NULL, "A1", 5));
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Kaka"), 15);
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_remove_stock(void)
 {
-    warehouse_t *wh = warehouse_create();
-    warehouse_add_merch(wh, "Kaka", "God", 10);
-    warehouse_add_shelf(wh, "Kaka", "A1", 5);
-    warehouse_add_shelf(wh, "Kaka", "A2", 3);
+    warehouse_t *wh = ioopm_warehouse_create();
+    ioopm_warehouse_add_merch(wh, "Kaka", "God", 10);
+    ioopm_warehouse_add_shelf(wh, "Kaka", "A1", 5);
+    ioopm_warehouse_add_shelf(wh, "Kaka", "A2", 3);
 
     // Uttag över flera hyllor (äldsta först): tömmer A1 och tar 1 från A2
-    CU_ASSERT_TRUE(warehouse_remove_stock(wh, "Kaka", 6));
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 2);
+    CU_ASSERT_TRUE(ioopm_warehouse_remove_stock(wh, "Kaka", 6));
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Kaka"), 2);
 
     // För stort uttag ska inte ändra något
-    CU_ASSERT_FALSE(warehouse_remove_stock(wh, "Kaka", 3));
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 2);
+    CU_ASSERT_FALSE(ioopm_warehouse_remove_stock(wh, "Kaka", 3));
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Kaka"), 2);
 
-    CU_ASSERT_FALSE(warehouse_remove_stock(wh, "Kaka", 0));
-    CU_ASSERT_FALSE(warehouse_remove_stock(wh, "Finns inte", 1));
-    CU_ASSERT_FALSE(warehouse_remove_stock(NULL, "Kaka", 1));
+    CU_ASSERT_FALSE(ioopm_warehouse_remove_stock(wh, "Kaka", 0));
+    CU_ASSERT_FALSE(ioopm_warehouse_remove_stock(wh, "Finns inte", 1));
+    CU_ASSERT_FALSE(ioopm_warehouse_remove_stock(NULL, "Kaka", 1));
 
     // Tom hylla finns kvar och kan fyllas på igen
-    CU_ASSERT_TRUE(warehouse_remove_stock(wh, "Kaka", 2));
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 0);
-    CU_ASSERT_TRUE(warehouse_has_shelf(wh, "A1"));
-    CU_ASSERT_TRUE(warehouse_replenish(wh, "A1", 4));
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 4);
+    CU_ASSERT_TRUE(ioopm_warehouse_remove_stock(wh, "Kaka", 2));
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Kaka"), 0);
+    CU_ASSERT_TRUE(ioopm_warehouse_has_shelf(wh, "A1"));
+    CU_ASSERT_TRUE(ioopm_warehouse_replenish(wh, "A1", 4));
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Kaka"), 4);
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_get_stock_failures(void)
 {
-    warehouse_t *wh = warehouse_create();
-    warehouse_add_merch(wh, "Kaka", "God", 10);
+    warehouse_t *wh = ioopm_warehouse_create();
+    ioopm_warehouse_add_merch(wh, "Kaka", "God", 10);
 
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Kaka"), 0);        // inga hyllor
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "Finns inte"), 0);
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, NULL), 0);
-    CU_ASSERT_EQUAL(warehouse_get_stock(NULL, "Kaka"), 0);
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Kaka"), 0); // inga hyllor
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "Finns inte"), 0);
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, NULL), 0);
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(NULL, "Kaka"), 0);
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_add_merch_negative_price(void)
 {
-    warehouse_t *wh = warehouse_create();
+    warehouse_t *wh = ioopm_warehouse_create();
 
-    CU_ASSERT_FALSE(warehouse_add_merch(wh, "Kaka", "God", -1));
-    CU_ASSERT_TRUE(warehouse_is_empty(wh));
-    CU_ASSERT_TRUE(warehouse_add_merch(wh, "Gratis", "Provbit", 0));
+    CU_ASSERT_FALSE(ioopm_warehouse_add_merch(wh, "Kaka", "God", -1));
+    CU_ASSERT_TRUE(ioopm_warehouse_is_empty(wh));
+    CU_ASSERT_TRUE(ioopm_warehouse_add_merch(wh, "Gratis", "Provbit", 0));
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_cart_checkout_multiple_shelves(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
 
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
-    warehouse_add_shelf(wh, "DP", "A1", 2);
-    warehouse_add_shelf(wh, "DP", "A2", 5);
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_shelf(wh, "DP", "A1", 2);
+    ioopm_warehouse_add_shelf(wh, "DP", "A2", 5);
 
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 4));
-    CU_ASSERT_TRUE(cart_checkout(cart, wh));
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "DP"), 3);
+    CU_ASSERT_TRUE(ioopm_cart_add_merch(cart, wh, "DP", 4));
+    CU_ASSERT_TRUE(ioopm_cart_checkout(cart, wh));
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "DP"), 3);
 
-    //cart_destroy(cart);
-    warehouse_destroy(wh);
-}
-
-void test_cart_reusable_after_checkout(void)
-{
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
-
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
-    warehouse_add_shelf(wh, "DP", "A1", 10);
-
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 2));
-    CU_ASSERT_TRUE(cart_checkout(cart, wh));
-
-    // Vagnen ska fungera som vanligt efter utcheckning (testar cart_replace_items)
-    CU_ASSERT_TRUE(cart_add_merch(cart, wh, "DP", 3));
-    CU_ASSERT_TRUE(cart_checkout(cart, wh));
-    CU_ASSERT_EQUAL(warehouse_get_stock(wh, "DP"), 5);
-
-    //cart_destroy(cart);
-    warehouse_destroy(wh);
+    // ioopm_cart_destroy(cart);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_cart_remove_failures(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
 
-    CU_ASSERT_FALSE(cart_remove_merch(cart, "Finns inte"));
-    CU_ASSERT_FALSE(cart_remove_merch(cart, NULL));
-    CU_ASSERT_FALSE(cart_remove_merch(NULL, "DP"));
+    CU_ASSERT_FALSE(ioopm_cart_remove_merch(cart, "Finns inte"));
+    CU_ASSERT_FALSE(ioopm_cart_remove_merch(cart, NULL));
+    CU_ASSERT_FALSE(ioopm_cart_remove_merch(NULL, "DP"));
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_cart_checkout_empty_and_null(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
 
-    CU_ASSERT_TRUE(cart_checkout(cart, wh));     // tom vagn: lyckas utan att göra något
-    CU_ASSERT_FALSE(cart_checkout(NULL, wh));
-    CU_ASSERT_FALSE(cart_checkout(cart, NULL));
+    CU_ASSERT_TRUE(ioopm_cart_checkout(cart, wh)); // tom vagn: lyckas utan att göra något
+    CU_ASSERT_FALSE(ioopm_cart_checkout(NULL, wh));
+    CU_ASSERT_FALSE(ioopm_cart_checkout(cart, NULL));
 
-   // cart_destroy(cart);
-    warehouse_destroy(wh);
+    // ioopm_cart_destroy(cart);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_cart_cost_merch_removed(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
 
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
-    warehouse_add_shelf(wh, "DP", "A01", 10);
-    cart_add_merch(cart, wh, "DP", 2);
-    warehouse_remove_merch(wh, "DP");
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_shelf(wh, "DP", "A01", 10);
+    ioopm_cart_add_merch(cart, wh, "DP", 2);
+    ioopm_warehouse_remove_merch(wh, "DP");
 
     int cost = 123;
-    CU_ASSERT_FALSE(cart_calculate_cost(cart, wh, &cost));  // varan finns inte längre
-    CU_ASSERT_FALSE(cart_calculate_cost(NULL, wh, &cost));
-    CU_ASSERT_FALSE(cart_calculate_cost(cart, wh, NULL));
+    CU_ASSERT_FALSE(ioopm_cart_calculate_cost(cart, wh, &cost)); // varan finns inte längre
+    CU_ASSERT_FALSE(ioopm_cart_calculate_cost(NULL, wh, &cost));
+    CU_ASSERT_FALSE(ioopm_cart_calculate_cost(cart, wh, NULL));
 
-    //cart_destroy(cart);
-    warehouse_destroy(wh);
+    // ioopm_cart_destroy(cart);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_warehouse_cart_interact(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *c1 = cart_create(wh);
-    cart_t *c2 = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *c1 = ioopm_cart_create(wh);
+    cart_t *c2 = ioopm_cart_create(wh);
 
-    CU_ASSERT_EQUAL(cart_get_id(c1), 1);
-    CU_ASSERT_EQUAL(cart_get_id(c2), 2);
+    CU_ASSERT_EQUAL(ioopm_cart_get_id(c1), 1);
+    CU_ASSERT_EQUAL(ioopm_cart_get_id(c2), 2);
 
-    CU_ASSERT_PTR_EQUAL(warehouse_get_cart(wh, 1), c1)
-    CU_ASSERT_PTR_EQUAL(warehouse_get_cart(wh, 2), c2)
+    CU_ASSERT_PTR_EQUAL(ioopm_warehouse_get_cart(wh, 1), c1)
+    CU_ASSERT_PTR_EQUAL(ioopm_warehouse_get_cart(wh, 2), c2)
 
-    CU_ASSERT_TRUE(cart_remove(wh, 1));
-    CU_ASSERT_PTR_EQUAL(warehouse_get_cart(wh, 1), NULL);
-    CU_ASSERT_FALSE(cart_remove(wh, 1));
-    CU_ASSERT_FALSE(cart_remove(wh, 123));
+    CU_ASSERT_TRUE(ioopm_cart_remove(wh, 1));
+    CU_ASSERT_PTR_EQUAL(ioopm_warehouse_get_cart(wh, 1), NULL);
+    CU_ASSERT_FALSE(ioopm_cart_remove(wh, 1));
+    CU_ASSERT_FALSE(ioopm_cart_remove(wh, 123));
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_cart_remove_ammount(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *cart = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
 
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
-    warehouse_add_shelf(wh, "DP", "A01", 10);
-    cart_add_merch(cart, wh, "DP", 5);
-    
-    CU_ASSERT_TRUE(cart_remove_merch_ammount(cart, "DP", 2));
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_shelf(wh, "DP", "A01", 10);
+    ioopm_cart_add_merch(cart, wh, "DP", 5);
+
+    CU_ASSERT_TRUE(ioopm_cart_remove_merch_ammount(cart, "DP", 2));
     int result = 0;
-    cart_calculate_cost(cart, wh, &result);
+    ioopm_cart_calculate_cost(cart, wh, &result);
     CU_ASSERT_EQUAL(result, 30);
 
-    CU_ASSERT_FALSE(cart_remove_merch_ammount(cart, "DP", -1));
-    CU_ASSERT_FALSE(cart_remove_merch_ammount(cart, "Finns inte", 2));
+    CU_ASSERT_FALSE(ioopm_cart_remove_merch_ammount(cart, "DP", -1));
+    CU_ASSERT_FALSE(ioopm_cart_remove_merch_ammount(cart, "Finns inte", 2));
 
-    CU_ASSERT_TRUE(cart_remove_merch_ammount(cart, "DP", 3));
-    cart_calculate_cost(cart, wh, &result);
+    CU_ASSERT_TRUE(ioopm_cart_remove_merch_ammount(cart, "DP", 3));
+    ioopm_cart_calculate_cost(cart, wh, &result);
     CU_ASSERT_EQUAL(result, 0);
 
-    cart_destroy(cart);
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
 }
 
 void test_cart_reserved_stock(void)
 {
-    warehouse_t *wh = warehouse_create();
-    cart_t *c1 = cart_create(wh);
-    cart_t *c2 = cart_create(wh);
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *c1 = ioopm_cart_create(wh);
+    cart_t *c2 = ioopm_cart_create(wh);
 
-    warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
-    warehouse_add_shelf(wh, "DP", "A1", 5);
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_shelf(wh, "DP", "A1", 5);
 
-    CU_ASSERT_TRUE(cart_add_merch(c1, wh, "DP", 3));
-    CU_ASSERT_FALSE(cart_add_merch(c2, wh, "DP", 3));
-    CU_ASSERT_TRUE(cart_add_merch(c2, wh, "DP", 2));
-    CU_ASSERT_FALSE(cart_add_merch(c1, wh, "DP", 1));
+    CU_ASSERT_TRUE(ioopm_cart_add_merch(c1, wh, "DP", 3));
+    CU_ASSERT_FALSE(ioopm_cart_add_merch(c2, wh, "DP", 3));
+    CU_ASSERT_TRUE(ioopm_cart_add_merch(c2, wh, "DP", 2));
+    CU_ASSERT_FALSE(ioopm_cart_add_merch(c1, wh, "DP", 1));
 
-    warehouse_destroy(wh);
+    ioopm_warehouse_destroy(wh);
+}
+
+void test_iterators(void)
+{
+    warehouse_t *wh = ioopm_warehouse_create();
+
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_merch(wh, "Tro", "cadero", 10);
+    ioopm_warehouse_add_shelf(wh, "DP", "A01", 10);
+
+    ioopm_hash_table_iterator_t *mit = ioopm_warehouse_merch_iterator(wh);
+    ioopm_list_iterator_t *dp_it = ioopm_warehouse_stock_iterator(wh, "DP");
+    ioopm_list_iterator_t *tro_it = ioopm_warehouse_stock_iterator(wh, "Tro");
+
+    CU_ASSERT_FALSE(ioopm_hash_table_iterator_at_end(mit));
+    CU_ASSERT_FALSE(ioopm_list_iterator_at_end(dp_it));
+    CU_ASSERT_TRUE(ioopm_list_iterator_at_end(tro_it));
+
+    shelf_t *s = ioopm_list_iterator_current(dp_it).p;
+
+    CU_ASSERT_STRING_EQUAL(ioopm_shelf_get_id(s), "A01");
+    CU_ASSERT_EQUAL(ioopm_shelf_get_stock(s), 10);
+
+    ioopm_hash_table_iterator_advance(mit);
+    ioopm_list_iterator_advance(dp_it);
+
+    CU_ASSERT_FALSE(ioopm_hash_table_iterator_at_end(mit));
+    CU_ASSERT_TRUE(ioopm_list_iterator_at_end(dp_it));
+    
+    ioopm_hash_table_iterator_advance(mit);
+
+    CU_ASSERT_TRUE(ioopm_hash_table_iterator_at_end(mit));
+
+    ioopm_hash_table_iterator_destroy(mit);
+    ioopm_list_iterator_destroy(dp_it);
+    ioopm_list_iterator_destroy(tro_it);
+    ioopm_warehouse_destroy(wh);
+}
+
+void test_reserved_merch(void)
+{
+    warehouse_t *wh = ioopm_warehouse_create();
+    cart_t *cart = ioopm_cart_create(wh);
+    cart_t *empty_cart = ioopm_cart_create(wh);
+
+    ioopm_warehouse_add_merch(wh, "DP", "Dr Pepper", 10);
+    ioopm_warehouse_add_shelf(wh, "DP", "A01", 10);
+
+    ioopm_cart_add_merch(cart, wh, "DP", 5);
+
+    CU_ASSERT_TRUE(ioopm_warehouse_edit_merch(wh, "DP", "DPZ", "desc", 5));
+
+    int cost = 0;
+    ioopm_cart_calculate_cost(cart, wh, &cost);
+    CU_ASSERT_EQUAL(cost, 25);
+
+    ioopm_cart_checkout(cart, wh);
+    CU_ASSERT_EQUAL(ioopm_warehouse_get_stock(wh, "DPZ"), 5);
+
+    ioopm_warehouse_destroy(wh);
 }
 
 int main()
@@ -667,13 +669,14 @@ int main()
         (CU_add_test(my_test_suite, "Get stock failures", test_get_stock_failures) == NULL) ||
         (CU_add_test(my_test_suite, "Add merch negative price", test_add_merch_negative_price) == NULL) ||
         (CU_add_test(my_test_suite, "Cart checkout multiple shelves", test_cart_checkout_multiple_shelves) == NULL) ||
-        (CU_add_test(my_test_suite, "Cart reusable after checkout", test_cart_reusable_after_checkout) == NULL) ||
         (CU_add_test(my_test_suite, "Cart remove failures", test_cart_remove_failures) == NULL) ||
         (CU_add_test(my_test_suite, "Cart checkout empty and null", test_cart_checkout_empty_and_null) == NULL) ||
         (CU_add_test(my_test_suite, "Cart cost merch removed", test_cart_cost_merch_removed) == NULL) ||
         (CU_add_test(my_test_suite, "Carts connected to warehouse", test_warehouse_cart_interact) == NULL) ||
         (CU_add_test(my_test_suite, "Carts remove a specific ammount of items", test_cart_remove_ammount) == NULL) ||
         (CU_add_test(my_test_suite, "Carts test reserved stock", test_cart_reserved_stock) == NULL) ||
+        (CU_add_test(my_test_suite, "Test iterators", test_iterators) == NULL) ||
+        (CU_add_test(my_test_suite, "Edit reserved merch", test_reserved_merch) == NULL) ||
         0)
 
     {
