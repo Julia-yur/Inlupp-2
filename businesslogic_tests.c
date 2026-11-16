@@ -543,7 +543,7 @@ void test_cart_remove_ammount(void)
     ioopm_warehouse_destroy(wh);
 }
 
-void test_cart_reserved_stock(void)
+void test_cart_add_reserved_stock(void)
 {
     warehouse_t *wh = ioopm_warehouse_create();
     cart_t *c1 = ioopm_cart_create(wh);
@@ -674,7 +674,7 @@ int main()
         (CU_add_test(my_test_suite, "Cart cost merch removed", test_cart_cost_merch_removed) == NULL) ||
         (CU_add_test(my_test_suite, "Carts connected to warehouse", test_warehouse_cart_interact) == NULL) ||
         (CU_add_test(my_test_suite, "Carts remove a specific ammount of items", test_cart_remove_ammount) == NULL) ||
-        (CU_add_test(my_test_suite, "Carts test reserved stock", test_cart_reserved_stock) == NULL) ||
+        (CU_add_test(my_test_suite, "Carts test reserved stock", test_cart_add_reserved_stock) == NULL) ||
         (CU_add_test(my_test_suite, "Test iterators", test_iterators) == NULL) ||
         (CU_add_test(my_test_suite, "Edit reserved merch", test_reserved_merch) == NULL) ||
         0)
