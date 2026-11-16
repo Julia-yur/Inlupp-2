@@ -26,23 +26,23 @@ typedef struct cart cart_t;
 /// @brief Creates an empty warehouse.
 /// @return the new warehouse, or NULL if allocation fails.
 /// Must be destroyed with warehouse_destroy().
-warehouse_t *warehouse_create(void);
+warehouse_t *ioopm_warehouse_create(void);
 
 /// @brief Destroys a warehouse and and everything it owns: all merchandise, shelves
 /// and all carts created with cart_create(wh).
 /// @param wh the warehouse (NULL is allowed and does nothing)
 /// @warning Do not call cart_destroy() on carts created with cart_create(wh);
-void warehouse_destroy(warehouse_t *wh);
+void ioopm_warehouse_destroy(warehouse_t *wh);
 
 /// @brief Checks whether the warehouse conatins any merchandise.
 /// @param wh the warehouse
 /// @return true if there is no merchandise (or wh is NULL) 
-bool warehouse_is_empty(warehouse_t *wh);
+bool ioopm_warehouse_is_empty(warehouse_t *wh);
 
 /// @brief Counts the different kinds of merchandise in the warehouse.
 /// @param wh the warehouse
 /// @return the number of merchandise entries, or NULL if wh is 0
-size_t warehouse_merch_count(warehouse_t *wh);
+size_t ioopm_warehouse_merch_count(warehouse_t *wh);
 
 // Merchandise   
 
@@ -50,7 +50,7 @@ size_t warehouse_merch_count(warehouse_t *wh);
 /// @param wh the warehouse
 /// @param the merhcandise name
 /// @return true if it exists, false otherwise (also if an argument is NULL)
-bool warehouse_has_merch(warehouse_t *wh, char *key);
+bool ioopm_warehouse_has_merch(warehouse_t *wh, char *key);
 
 /// @brief Adds new merchandise with no shelves
 /// @param wh the warehouse
@@ -59,7 +59,7 @@ bool warehouse_has_merch(warehouse_t *wh, char *key);
 /// @param price the price (must be >= 0)
 /// @return true if added; false if an argument is NULL, price if negative, 
 ///         name is already in use or allocation fails.
-bool warehouse_add_merch(warehouse_t *wh, char *name, char *desc, int price);
+bool ioopm_warehouse_add_merch(warehouse_t *wh, char *name, char *desc, int price);
 
 /// @brief Looks up the description of a merchandise
 /// @param wh the warehouse
@@ -68,20 +68,20 @@ bool warehouse_add_merch(warehouse_t *wh, char *name, char *desc, int price);
 /// @return true if found, otherwise false
 /// @note The string is owned by the warehouse: do not free it
 ///       and do not use it after edit/remove.
-bool warehouse_lookup_desc(warehouse_t *wh, char *name, char **result);
+bool ioopm_warehouse_lookup_desc(warehouse_t *wh, char *name, char **result);
 
 /// @brief Looks up the price of a merchandise
 /// @param wh the warehouse
 /// @param name the merchandise name
 /// @param result writes a pointer to the price
 /// @return true if found, otherwise false
-bool warehouse_lookup_price(warehouse_t *wh, char *name, int *result);
+bool ioopm_warehouse_lookup_price(warehouse_t *wh, char *name, int *result);
 
 /// @brief Removes merchandise together with all its shelves
 /// @param wh the warehouse
 /// @param name the mechandise name
 /// @return true if removed, false otherwise
-bool warehouse_remove_merch(warehouse_t *wh, char *name);
+bool ioopm_warehouse_remove_merch(warehouse_t *wh, char *name);
 
 /// @brief Changes the name, description and price of a merch. 
 ///        Shelves and stock follows along
@@ -92,14 +92,14 @@ bool warehouse_remove_merch(warehouse_t *wh, char *name);
 /// @param new_price the new price (must be >=0)
 /// @return true if edited; false if NULL, the price is negative, 
 ///         merchandise does not exist, or allocation fails
-bool warehouse_edit_merch(warehouse_t *wh, char *name, char *new_name, char *new_desc, int new_price);
+bool ioopm_warehouse_edit_merch(warehouse_t *wh, char *name, char *new_name, char *new_desc, int new_price);
 
 /// @brief Creates an iterator over the merchandises name
 /// @pre wh is not NULL
 /// @param wh the warehouse
 /// @return the iterator, or NULL if allocation fails. The caller must call
 ///         ioopm_has_table_iteration_destroy() on it.
-ioopm_hash_table_iterator_t *warehouse_merch_iterator(warehouse_t *wh);
+ioopm_hash_table_iterator_t *ioopm_warehouse_merch_iterator(warehouse_t *wh);
 
 // Shelves and stock
 
@@ -107,7 +107,7 @@ ioopm_hash_table_iterator_t *warehouse_merch_iterator(warehouse_t *wh);
 /// @param wh the warehouse
 /// @param shelf the shelf id
 /// @return true if shelf exists, false otherwise (or if argument is NULL)
-bool warehouse_has_shelf(warehouse_t *wh, char *shelf);
+bool ioopm_warehouse_has_shelf(warehouse_t *wh, char *shelf);
 
 /// @brief  Puts `quantity` units of a merchandise on a shelf. Creates the shelf
 ///        if it does not exist; otherwise adds to the stock already there.
@@ -117,13 +117,13 @@ bool warehouse_has_shelf(warehouse_t *wh, char *shelf);
 /// @param quantity number of units, must be > 0
 /// @return true if it succeeds, false if the merchandise does not exist, quantity
 ///         is not positive, allocation fails or if shelf holds a different merchandise.
-bool warehouse_add_shelf(warehouse_t *wh, char *name, char *shelf, int quantity);
+bool ioopm_warehouse_add_shelf(warehouse_t *wh, char *name, char *shelf, int quantity);
 
 /// @brief Gets the total stock of a merchandise over all its shelves.
 /// @param wh the warehouse
 /// @param name the merchandise name
 /// @return the total stock, 0 if merchandise does not exist or has no shelves
-int warehouse_get_stock(warehouse_t *wh, char *name);
+int ioopm_warehouse_get_stock(warehouse_t *wh, char *name);
 
 /// @brief Adds quantity units to an existing shelf
 /// @param wh the warehouse
@@ -131,7 +131,7 @@ int warehouse_get_stock(warehouse_t *wh, char *name);
 /// @param quantity the number of units, must be > 0
 /// @return true if shelf exists, false if shelf does not exist,
 ///         number of units is negative or 0
-bool warehouse_replenish(warehouse_t *wh, char *shelf, int quantity);
+bool ioopm_warehouse_replenish(warehouse_t *wh, char *shelf, int quantity);
 
 /// @brief Removes `quantity` units of the merchandise `name`.
 ///         Stock is taken from the shelves in the order they were added (oldest shelf first).
@@ -140,7 +140,7 @@ bool warehouse_replenish(warehouse_t *wh, char *shelf, int quantity);
 /// @param quantity number of units, must be > 0
 /// @return true if merchandise exits, false if merchandise does not exist,
 ///         quantity is not positive or total stock is unsufficient
-bool warehouse_remove_stock(warehouse_t *wh, char *name, int quantity);
+bool ioopm_warehouse_remove_stock(warehouse_t *wh, char *name, int quantity);
 
 /// @brief Creates an iterator ove the shelves and the merchandise (oldest first)
 ///        Each shelf is an shelf_t. 
@@ -150,15 +150,15 @@ bool warehouse_remove_stock(warehouse_t *wh, char *name, int quantity);
 /// @return the iterator, or NULL on allocation failure. The caller must call
 ///         ioopm_list_iterator_destroy() on it.
 /// @note do not change the warehouse while iterating
-ioopm_list_iterator_t *warehouse_stock_iterator(warehouse_t *wh, char *name);
+ioopm_list_iterator_t *ioopm_warehouse_stock_iterator(warehouse_t *wh, char *name);
 
 /// @brief Gets the id of a shelf, for use with warehouse_stock_iterator.
 /// @return the shelf id, owned by the shelf; do not free it
-char *shelf_get_id(shelf_t *shelf);
+char *ioopm_shelf_get_id(shelf_t *shelf);
 
 /// @brief Gets the number of units on a shelf, 
 /// @return the stock, o if shelf is NULL
-int shelf_get_stock(shelf_t *shelf);
+int ioopm_shelf_get_stock(shelf_t *shelf);
 
 // Carts
 
@@ -168,13 +168,13 @@ int shelf_get_stock(shelf_t *shelf);
 ///        a standalone cart with id 1 created, owned by the caller.
 /// @param wh the warehouse, or NULL
 /// @return the cart, or NULL if allocation fails
-cart_t *cart_create(warehouse_t *wh);
+cart_t *ioopm_cart_create(warehouse_t *wh);
  
 /// @brief Destroys a standalone cart.
 /// @param cart the cart (NULL is allowed and does nothing)
 /// @return  Never use this on a cart registered in a warehouse; use
 ///          cart_remove() or let warehouse_destroy() free it.
-void cart_destroy(cart_t *cart);
+void ioopm_cart_destroy(cart_t *cart);
 
 /// @brief Removes a cart from the warehouse and destroys it.
 ///        Units the cart had reserved become available again.
@@ -182,17 +182,17 @@ void cart_destroy(cart_t *cart);
 /// @param wh the warehouse
 /// @param cart_id id of the cart
 /// @return true if removed, false if no cart has that id
-bool cart_remove(warehouse_t *wh, int cart_id);
+bool ioopm_cart_remove(warehouse_t *wh, int cart_id);
 
 /// @brief Gets the id of a cart.
 /// @return the id, 0 if cart is NULL
-int cart_get_id(cart_t *cart);
+int ioopm_cart_get_id(cart_t *cart);
 
 /// @brief Finds a cart in warehouse by its id
 /// @param wh the warehouse
 /// @param cart_id the id of a cart
 /// @return the cart, or NULL if not found. The cart is owned by its warehouse
-cart_t *warehouse_get_cart(warehouse_t *wh, int cart_id);
+cart_t *ioopm_warehouse_get_cart(warehouse_t *wh, int cart_id);
 
 /// @brief Removes an ammount of merch from cart
 /// @param cart the cart
@@ -200,7 +200,7 @@ cart_t *warehouse_get_cart(warehouse_t *wh, int cart_id);
 /// @param ammount number of units, must be >= 0
 /// @return true of success, false if amount is negative or if merchandise
 ///         is not in cart
-bool cart_remove_merch_ammount(cart_t *cart, char *name, int ammount);
+bool ioopm_cart_remove_merch_ammount(cart_t *cart, char *name, int ammount);
 
 /// @brief Adds merchandise to a cart and reserves the units.
 ///        If the merchandise is already in the cart, its quantity is increased.
@@ -212,7 +212,7 @@ bool cart_remove_merch_ammount(cart_t *cart, char *name, int ammount);
 /// @return true on success; false if an argument is NULL, quantity is not
 ///         positive, the merchandise does not exist, or there is not enough
 ///         unreserved stock (units already in any cart count as reserved)
-bool cart_add_merch(cart_t *cart, warehouse_t *wh, char *name, int quantity);
+bool ioopm_cart_add_merch(cart_t *cart, warehouse_t *wh, char *name, int quantity);
 
 
 /// @brief Removes a merchandise item from a cart.
@@ -221,7 +221,7 @@ bool cart_add_merch(cart_t *cart, warehouse_t *wh, char *name, int quantity);
 /// @param cart The shopping cart to remove the merchandise from.
 /// @param name The name of the merchandise to remove.
 /// @return true if the merchandise was successfully removed, false otherwise.
-bool cart_remove_merch(cart_t *cart, char *name);
+bool ioopm_cart_remove_merch(cart_t *cart, char *name);
 
 
 /// @brief Renames a merchandise item in a shopping cart.
@@ -232,7 +232,7 @@ bool cart_remove_merch(cart_t *cart, char *name);
 /// @param old_name the current name of the merchandise.
 /// @param new_name the new name of the merchandise.
 /// @return true if the cart was updated or did not contain the merchandise false otherwise.
-bool cart_rename_merch(cart_t *cart, char *old_name, char *new_name);
+bool ioopm_cart_rename_merch(cart_t *cart, char *old_name, char *new_name);
 
 /// @brief Calculates the total price of the cart.
 /// @param cart the cart
@@ -240,7 +240,7 @@ bool cart_rename_merch(cart_t *cart, char *old_name, char *new_name);
 /// @param result set to the total; untouched on failure
 /// @return true on success; false if an argument is NULL or a merchandise in
 ///         the cart no longer exists
-bool cart_calculate_cost(cart_t *cart, warehouse_t *wh, int *result);
+bool ioopm_cart_calculate_cost(cart_t *cart, warehouse_t *wh, int *result);
 
 /// @brief Buys everything in the cart: reduces the stock and empties the cart.
 ///        All-or-nothing: if anything fails, nothing is changed.
@@ -248,4 +248,4 @@ bool cart_calculate_cost(cart_t *cart, warehouse_t *wh, int *result);
 /// @param wh the warehouse
 /// @return true on success; false if an argument is NULL, a merchandise no
 ///         longer exists, or the stock is insufficient
-bool cart_checkout(cart_t *cart, warehouse_t *wh);
+bool ioopm_cart_checkout(cart_t *cart, warehouse_t *wh);
