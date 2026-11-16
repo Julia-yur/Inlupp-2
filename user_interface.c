@@ -1,5 +1,8 @@
+#include "hash_table_iterator.h"
 #include "utils.h"
 #include "businesslogic.h"
+#include <stdbool.h>
+#include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -43,18 +46,24 @@ char *ask_question_menu(void)
 void menu_merch_add(warehouse_t *wh)
 {
     char *name = ask_question_string("Name: ");
+    char *desc = ask_question_string("Description: ");
+    int price = 0;
 
-    if (warehouse_has_merch(wh, name))
+    while (price <= 0)
+    {
+        price = ask_question_int("Price: ");
+        if (price <= 0) printf("Negative cost not allowed!\n");
+    }
+
+    if (ioopm_warehouse_has_merch(wh, name))
     {
         printf("%s is already present!", name);
         free(name);
+        free(desc);
         return;
     }
 
-    char *desc = ask_question_string("Description: ");
-    int price = ask_question_int("Price: ");
-
-    warehouse_add_merch(wh, name, desc, price);
+    ioopm_warehouse_add_merch(wh, name, desc, price);
 
     free(name);
     free(desc);
@@ -62,15 +71,28 @@ void menu_merch_add(warehouse_t *wh)
 
 void menu_merch_list(warehouse_t *wh)
 {
-    ioopm_hash_table_iterator_t *iter = warehouse_merch_iterator(wh);
+    ioopm_hash_table_iterator_t *iter = ioopm_warehouse_merch_iterator(wh);
 
+    int i = 0;
     while (ioopm_hash_table_iterator_at_end(iter) == false)
     {
         char *name = ioopm_hash_table_iterator_current_key(iter).s;
         printf("%s\n", name);
         ioopm_hash_table_iterator_advance(iter);
+        i++;
 
-        //DODGE: Skriv endast var 20e merch och fråga N för nej och ENTER och anykey för nästa sida
+        if (i == 20 && ioopm_hash_table_iterator_at_end(iter) == false)
+        {
+            char *con = ask_question_string_empty("Continue listings? y/n\n");
+            char confirm = tolower(con[0]);
+            free(con); 
+
+            if (confirm != 'n')
+            {
+                i = 0;
+            } 
+            else break;
+        }
     }
     
     ioopm_hash_table_iterator_destroy(iter);
@@ -79,7 +101,7 @@ void menu_merch_list(warehouse_t *wh)
 void menu_merch_remove(warehouse_t *wh)
 {
     char *name = ask_question_string("Name of item to remove:");
-    bool success = warehouse_remove_merch(wh, name);
+    bool success = ioopm_warehouse_remove_merch(wh, name);
     
     if (success) printf("%s was removed successfully\n", name);
     else printf("Fail, %s is not in database\n", name);
@@ -90,32 +112,43 @@ void menu_merch_remove(warehouse_t *wh)
 void menu_merch_edit(warehouse_t *wh)
 {
     char *name = ask_question_string("Name of item to edit:");
-    if (!warehouse_has_merch(wh, name))
-    {
-        printf("%s is not in database, edit aborted and discarded.\n", name);
-        free(name);
-        return;
-    }
-
     char *new_name = ask_question_string("New name: ");
-    if (warehouse_has_merch(wh, new_name) && strcmp(name, new_name) != 0)
-    {
-        printf("%s is already present in databse, edit aborted and discarded.\n", new_name);
-        free(new_name);
-        free(name);
-        return;
-    }
-
     char *desc = ask_question_string("Description: ");
-    int price = ask_question_int("Price: ");
+
+    int price = 0;
+    while (price <= 0)
+    {
+        price = ask_question_int("Price: ");
+        if (price <= 0) printf("Negative cost not allowed!\n");
+    }
+    
     char *con = ask_question_string("Are you sure? y/n\n");
     char confirm = tolower(con[0]);
 
+    if (!ioopm_warehouse_has_merch(wh, name))
+    {
+        printf("%s is not in database, edit aborted and discarded.\n", name);
+        free(name);
+        free(new_name);
+        free(desc);
+        free(con);
+        return;
+    }
+
+    if (ioopm_warehouse_has_merch(wh, new_name) && strcmp(name, new_name) != 0)
+    {
+        printf("%s is already present in databse, edit aborted and discarded.\n", new_name);
+        free(name);
+        free(new_name);
+        free(desc);
+        free(con);
+        return;
+    }
+
     if (confirm == 'y')
     {
-        bool success = warehouse_edit_merch(wh, name, new_name, desc, price);
+        bool success = ioopm_warehouse_edit_merch(wh, name, new_name, desc, price);
         if (success) printf("%s was edited successfully!\n", name);
-        else printf("Price cannot be negative.\n");
     }
     else printf("Edit aborted and discarded.\n");
     
@@ -128,14 +161,14 @@ void menu_merch_edit(warehouse_t *wh)
 void menu_merch_stock(warehouse_t *wh)
 {
     char *name = ask_question_string("Name of item to show stock:");
-    if (!warehouse_has_merch(wh, name))
+    if (!ioopm_warehouse_has_merch(wh, name))
     {
         printf("%s is not in database.\n", name);
         free(name);
         return;
     }
 
-    ioopm_list_iterator_t *iter = warehouse_stock_iterator(wh, name);
+    ioopm_list_iterator_t *iter = ioopm_warehouse_stock_iterator(wh, name);
     if (ioopm_list_iterator_at_end(iter))
     {
         printf("%s has no assigned shelves\n", name);
@@ -147,7 +180,7 @@ void menu_merch_stock(warehouse_t *wh)
     while (!ioopm_list_iterator_at_end(iter))
     {
         shelf_t *shelf = ioopm_list_iterator_current(iter).p;
-        printf("Shelf: %s, Ammount: %d\n", shelf_get_id(shelf), shelf_get_stock(shelf));
+        printf("Shelf: %s, Ammount: %d\n", ioopm_shelf_get_id(shelf), ioopm_shelf_get_stock(shelf));
         ioopm_list_iterator_advance(iter);
     }
 
@@ -158,15 +191,7 @@ void menu_merch_stock(warehouse_t *wh)
 void menu_merch_replenish(warehouse_t *wh)
 {
     char *shelf = ask_question_shelf("Shelf: ");
-
     char *name = ask_question_string("Name of item to replenish:");
-    if (!warehouse_has_merch(wh, name))
-    {
-        printf("%s is not in database.\n", name);
-        free(name);
-        free(shelf);
-        return;
-    }
 
     int ammount = 0;
     while (ammount <= 0)
@@ -174,15 +199,23 @@ void menu_merch_replenish(warehouse_t *wh)
         ammount = ask_question_int("Amount to replenish: ");
         if (ammount <= 0) printf("You cant replenish 0 or a negative number!\n");
     }
+
+    if (!ioopm_warehouse_has_merch(wh, name))
+    {
+        printf("%s is not in database.\n", name);
+        free(name);
+        free(shelf);
+        return;
+    }
     
-    bool success = warehouse_add_shelf(wh, name, shelf, ammount);
+    bool success = ioopm_warehouse_add_shelf(wh, name, shelf, ammount);
     if (success)
     {
         printf("Replenished %d of %s on shelf %s\n", ammount, name, shelf);
     }
     else
     {
-        printf("%s is already uppupied by another item.\n", name);
+        printf("%s is already uccupied by another item.\n", name);
     }
 
     free(name);
@@ -191,8 +224,8 @@ void menu_merch_replenish(warehouse_t *wh)
 
 void menu_cart_create(warehouse_t *wh)
 {
-    cart_t *c = cart_create(wh);
-    printf("Cart number %d was created\n", cart_get_id(c));
+    cart_t *c = ioopm_cart_create(wh);
+    printf("Cart number %d was created\n", ioopm_cart_get_id(c));
 }
 
 void menu_cart_remove(warehouse_t *wh)
@@ -205,7 +238,7 @@ void menu_cart_remove(warehouse_t *wh)
 
     if (val == 'y')
     {
-        if (cart_remove(wh, id))
+        if (ioopm_cart_remove(wh, id))
         {
             printf("Cart remove success\n");
         }
@@ -217,23 +250,26 @@ void menu_cart_remove(warehouse_t *wh)
 void menu_cart_merch_add(warehouse_t *wh)
 {
     int id = ask_question_int("ID of cart:");
-    cart_t *cart = warehouse_get_cart(wh, id);
-    if (cart == NULL)
-    {
-        printf("Cart remove fail, not in database\n");
-        return;
-    }
-
     char *name = ask_question_string("Name: ");
-    if (!warehouse_has_merch(wh, name))
+    int ammount = ask_question_int("Ammount: ");
+
+    cart_t *cart = ioopm_warehouse_get_cart(wh, id);
+
+    if (cart == NULL)
     {
         printf("Cart remove fail, not in database\n");
         free(name);
         return;
     }
 
-    int ammount = ask_question_int("Ammount: ");
-    if (cart_add_merch(cart, wh, name, ammount))
+    if (!ioopm_warehouse_has_merch(wh, name))
+    {
+        printf("Cart remove fail, not in database\n");
+        free(name);
+        return;
+    }
+
+    if (ioopm_cart_add_merch(cart, wh, name, ammount))
     {
         printf("Added %d of %s in cart %d\n", ammount, name, id);
     }
@@ -248,16 +284,17 @@ void menu_cart_merch_add(warehouse_t *wh)
 void menu_cart_merch_remove(warehouse_t *wh)
 {
     int id = ask_question_int("ID of cart:");
-    cart_t *cart = warehouse_get_cart(wh, id);
+    char *name = ask_question_string("Name: ");
+    int ammount = ask_question_int("Ammount: ");
+
+    cart_t *cart = ioopm_warehouse_get_cart(wh, id);
     if (cart == NULL)
     {
         printf("Cart remove fail, not in database\n");
         return;
     }
 
-    char *name = ask_question_string("Name: ");
-    int ammount = ask_question_int("Ammount: ");
-    if (cart_add_merch(cart, wh, name, ammount))
+    if (ioopm_cart_remove_merch_ammount(cart, name, ammount))
     {
         printf("Removed %d of %s in cart %d\n", ammount, name, id);
     }
@@ -272,15 +309,15 @@ void menu_cart_merch_remove(warehouse_t *wh)
 void menu_cart_cost(warehouse_t *wh)
 {
     int id = ask_question_int("ID of cart:");
-    cart_t *cart = warehouse_get_cart(wh, id);
+    cart_t *cart = ioopm_warehouse_get_cart(wh, id);
     if (cart == NULL)
     {
-        printf("Cart remove fail, not in database\n");
+        printf("Cart cost fail, not in database\n");
         return;
     }
 
     int result = 0;
-    if (cart_calculate_cost(cart, wh, &result))
+    if (ioopm_cart_calculate_cost(cart, wh, &result))
     {
         printf("Cost for cart %d: %d\n", id, result);
     }
@@ -290,14 +327,14 @@ void menu_cart_cost(warehouse_t *wh)
 void menu_cart_checkout(warehouse_t *wh)
 {
     int id = ask_question_int("ID of cart:");
-    cart_t *cart = warehouse_get_cart(wh, id);
+    cart_t *cart = ioopm_warehouse_get_cart(wh, id);
     if (cart == NULL)
     {
         printf("Cart remove fail, not in database\n");
         return;
     }
 
-    if (cart_checkout(cart, wh))
+    if (ioopm_cart_checkout(cart, wh))
     {
         printf("Cart %d checked out\n", id);
     }
@@ -312,7 +349,7 @@ bool menu_quit(warehouse_t *wh)
 
     if (val == 'y')
     {
-        warehouse_destroy(wh);
+        ioopm_warehouse_destroy(wh);
         return true;
     }
     else return false;
@@ -386,7 +423,7 @@ void event_loop(warehouse_t *wh)
 
 int main(void)
 {
-    warehouse_t *wh = warehouse_create();
+    warehouse_t *wh = ioopm_warehouse_create();
 
     event_loop(wh);
     

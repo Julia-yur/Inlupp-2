@@ -24,4 +24,10 @@ typedef answer_t convert_func(char *);
 
 answer_t ask_question(char *question, check_func *check, convert_func *convert);
 
+/// @brief Takes input from terminal an returns a string. Function added after the fact for making 
+///        it possible to pass along an empty line to UI. Return is automatically allocated and needs to be freed.
+/// @param question
+/// @return
+char *ask_question_string_empty(char *question);
+
 #endif
