@@ -77,7 +77,7 @@ answer_t ask_question(char *question, check_func *check, convert_func *convert)
   {
     printf("%s\n", question);
     read_string(buf, buf_siz);
-  } while (!check(buf)); //  loop om tom sträng
+  } while (!check(buf)); //  loop om ogiltig sträng
 
   return convert(buf);
 }
@@ -93,13 +93,25 @@ char *ask_question_string(char *question)
   return ask_question(question, not_empty, (convert_func *)strdup).string_value;
 }
 
+// Helper för att kunna mata in en tom sträng med ask_question_string_empty, för att användas med specialfall.
+static bool always_true_check(char* str)
+{
+  (void)str;
+  return true;
+}
+
+char *ask_question_string_empty(char *question)
+{
+  return ask_question(question, always_true_check, (convert_func *)strdup).string_value;
+}
+
 bool is_shelf(char *str)
 {
   int len = strlen(str);
   int i;     // for index loop
   int N = 1; // start för loop
 
-  if (len < 2)
+  if (len != 3)
   {
     return false;
   }

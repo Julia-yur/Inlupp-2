@@ -3,6 +3,7 @@ C_OPTIONS      = -Wall -Wextra -Wpedantic -g
 C_LINK_OPTIONS = -lm
 CUNIT_LINK     = -lcunit
 GCOV_FLAG	   = -coverage
+AUTO_UI		   = webstoretestown2.txt
 
 DATA_STRUCTURES = hash_table.c linked_list.c 
 
@@ -30,10 +31,10 @@ memtestui: ui
 	valgrind --leak-check=full ./ui
 
 testauto: ui
-	./ui < webstoretest.txt
+	./ui < $(AUTO_UI)
 
 memtestauto: ui
-	valgrind --leak-check=full ./ui < webstoretestown.txt
+	valgrind --leak-check=full ./ui < $(AUTO_UI)
 
 #COVERAGE#
 bl_coverage: businesslogic.c businesslogic_tests.c $(DATA_STRUCTURES)
@@ -48,6 +49,8 @@ covreport: bl_coverage
 	./bl_coverage
 	lcov --directory . --capture --output-file app.info --rc lcov_branch_coverage=1
 	genhtml -o html_report app.info --branch-coverage
+
+.PHONY: clear
 
 #CLEAR#
 clear:
