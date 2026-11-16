@@ -44,7 +44,7 @@ bool warehouse_is_empty(warehouse_t *wh);
 /// @return the number of merchandise entries, or NULL if wh is 0
 size_t warehouse_merch_count(warehouse_t *wh);
 
-// Merchandise
+// Merchandise   
 
 /// @brief Checks whether merchandise with the given name exists.
 /// @param wh the warehouse
